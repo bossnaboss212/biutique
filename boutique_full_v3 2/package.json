@@ -1,6 +1,6 @@
 {
-  "name": "boutique-full-v3",
-  "version": "0.3.0",
+  "name": "ecommerce-full",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,6 @@
     "cors": "^2.8.5",
     "node-fetch": "^3.4.0",
     "pdfkit": "^0.15.0",
-    "form-data": "^4.0.0",
-    "csv-stringify": "^6.0.0"
+    "form-data": "^4.0.0"
   }
 }
