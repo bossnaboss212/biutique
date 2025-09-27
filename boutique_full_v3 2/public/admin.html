@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Admin - Boutique</title></head><body>
+<h1>Admin</h1>
+<div id="loginForm">
+  <input id="pass" type="password" placeholder="Mot de passe admin"/>
+  <button id="loginBtn">Se connecter</button>
+  <div id="loginMsg"></div>
+</div>
+<div id="panel" style="display:none">
+  <button id="logoutBtn">Se déconnecter</button>
+  <h2>Stats</h2>
+  <pre id="stats"></pre>
+  <h2>Commandes</h2>
+  <div id="orders"></div>
+  <h2>Export</h2>
+  <button id="exportBtn">Télécharger CSV</button>
+</div>
+<script>
+async function login(){
+  const pass = document.getElementById('pass').value;
+  const r = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass})});
+  const j = await r.json();
+  if(j.ok){
+    localStorage.setItem('admin_token', j.token);
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('panel').style.display='block';
+    loadStats(); loadOrders();
+  } else {
+    document.getElementById('loginMsg').innerText = j.error || 'Erreur';
+  }
+}
+async function authFetch(url, options={}){
+  const token = localStorage.getItem('admin_token');
+  options.headers = Object.assign({}, options.headers||{}, {'x-admin-token': token});
+  return fetch(url, options);
+}
+async function loadStats(){
+  const r = await authFetch('/api/admin/stats'); const j = await r.json();
+  if(j.ok){ document.getElementById('stats').innerText = JSON.stringify(j.stats, null, 2); }
+}
+async function loadOrders(){
+  const r = await authFetch('/api/admin/orders'); const j = await r.json();
+  if(j.ok){
+    document.getElementById('orders').innerHTML = j.orders.map(o=>`<div style="border:1px solid #ccc;margin:6px;padding:6px"><b>#${o.id}</b> ${o.shop} ${o.type} ${new Date(o.created_at).toLocaleString()}<pre>${JSON.stringify(o.items,null,2)}</pre><div>Total: ${o.total/100} EUR</div></div>`).join('');
+  }
+}
+document.getElementById('loginBtn').onclick = login;
+document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem('admin_token'); location.reload(); };
+document.getElementById('exportBtn').onclick = async ()=>{
+  const token = localStorage.getItem('admin_token');
+  const r = await fetch('/api/admin/export', { headers: { 'x-admin-token': token }});
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='orders.csv'; a.click();
+  URL.revokeObjectURL(url);
+};
+</script>
+</body></html>
