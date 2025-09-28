@@ -1,0 +1,10 @@
+[build]
+  base    = "boutique"
+  publish = "public"
+  command = ""
+
+# (optionnel, utile si tu as du routage côté client)
+[[redirects]]
+  from = "/*"
+  to   = "/index.html"
+  status = 200
