@@ -5,7 +5,6 @@ import { open } from 'sqlite';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fetch from 'node-fetch';
 import fs from 'fs';
 import PDFDocument from 'pdfkit';
 import FormData from 'form-data';
