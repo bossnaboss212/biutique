@@ -142,3 +142,32 @@ main { overscroll-behavior: contain; }
   margin-top: 12px;
   cursor: pointer;
 }
+
+/* Empêcher de scroller l'arrière-plan quand le panier est ouvert */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Le contenu du panier (la carte) scrolle et garde de la place pour le bouton */
+#cartSheet .sheet-card {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-bottom: 100px; /* pour que le bouton ne cache pas le contenu */
+}
+
+/* Bouton Valider collé en bas du sheet */
+.fixed-btn {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+/* (Optionnel mais recommandé) : s'assurer que le main scrolle bien */
+main {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+}
