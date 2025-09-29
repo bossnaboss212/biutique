@@ -1,121 +1,95 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>DROGUA CENTER</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="app">
+:root {
+  --bg: #0f1115;
+  --card: #171a22;
+  --text: #e8edf2;
+  --muted: #aab4c0;
+  --accent: #4cb3ff;
+  --border: #2a2f34;
+}
 
-    <header class="top">
-      <h1>
-        <img src="img/logo.png" alt="Drogua Center" style="max-width:200px; height:auto;">
-      </h1>
-      <button id="cartBtn" class="btn">🛒 <span id="badge">0</span></button>
-    </header>
+* {
+  box-sizing: border-box;
+}
 
-    <!-- Filtres -->
-    <div id="filters" class="filters"></div>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  -webkit-overflow-scrolling: touch; /* scroll fluide iOS */
+}
 
-    <!-- Pages -->
-    <main id="page-home" class="page active">
-      <div id="grid" class="grid"></div>
-    </main>
+/* --- Scroll principal --- */
+main {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+}
 
-    <main id="page-infos" class="page">
-      <div class="card p">
-        <h2>Infos</h2>
-        <ul class="links">
-          <li><a target="_blank" href="https://t.me/+HT0vp95G9zY2ZTJk">CANAL PRINCIPAL</a></li>
-          <li><a target="_blank" href="https://t.me/+usSbDJ0fYsk5ZTG0">CANAL PHOTO</a></li>
-          <li><a target="_blank" href="https://snapchat.com/t/jR2yW7xa">Snapchat secours</a></li>
-        </ul>
-        <div class="muted small">Snapchat principal : <a target="_blank" href="https://snapchat.com/t/l9gurvAj">snapchat.com/t/l9gurvAj</a></div>
-      </div>
-    </main>
+@supports not (padding-bottom: env(safe-area-inset-bottom)) {
+  main {
+    padding-bottom: 110px;
+  }
+}
 
-    <!-- Panier -->
-    <section id="cartSheet" class="sheet hidden">
-      <div class="sheet-card">
-        <div class="sheet-header">
-          <h2>Panier</h2>
-          <button id="closeCart">✖</button>
-        </div>
-        <div id="lines"></div>
-        <div class="total">Total: <b id="total">0,00 €</b></div>
-        <div class="delivery">
-          <label><input type="radio" name="delivery" value="Livraison sur Millau" checked> Livraison sur Millau</label>
-          <label><input type="radio" name="delivery" value="Livraison extérieure (+20€)"> Livraison extérieure (+20€)</label>
-        </div>
-        <input id="addr" placeholder="Adresse (auto-complétion)">
-        <div id="suggestions"></div>
+/* --- Navigation du bas --- */
+.bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #12161d;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  z-index: 50;
+}
 
-        <!-- Bouton corrigé -->
-        <button id="checkout" class="primary fixed-btn">Valider</button>
-      </div>
-    </section>
+.tab {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-weight: 600;
+}
 
-    <!-- Nav bas -->
-    <nav class="bottom">
-      <button data-tab="home" class="tab active">Accueil</button>
-      <button data-tab="infos" class="tab">Infos</button>
-      <button data-tab="avis" class="tab">Avis</button>
-      <button data-tab="support" class="tab">Support</button>
-    </nav>
-
-  </div>
-
-  <script src="app.js"></script>
-</body>
-</html>
-
-/* ====== Feuille (overlay panier) ====== */
+/* --- Panier (sheet) --- */
 .sheet {
   position: fixed;
   inset: 0;
-  display: none;                  /* cachée par défaut */
-  background: rgba(0,0,0,.45);
-  overflow: hidden;               /* on bloque le scroll derrière */
-}
-.sheet:not(.hidden){
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: flex-end;
+  z-index: 100;
 }
 
-/* Carte du panier (le panneau qui remonte) */
-.sheet-card{
+.sheet.hidden {
+  display: none;
+}
+
+.sheet-card {
   background: var(--card);
-  width: 100%;
-  max-height: 85vh;               /* limite la hauteur sur mobile */
-  overflow-y: auto;               /* ⟵ on scrolle à l’intérieur */
-  -webkit-overflow-scrolling: touch;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
-  padding: 12px;
-  display: block;                 /* important pour sticky */
-}
-
-/* Empêche la page derrière de scroller quand la feuille est ouverte */
-body.modal-open{ overflow: hidden; }
-
-/* ====== Bouton Valider collé en bas de la feuille ====== */
-.fixed-btn{
-  position: sticky;               /* colle au bas du viewport de la feuille */
-  bottom: 0;
-  left: 0; right: 0;
+  padding: 16px;
   width: 100%;
-  margin-top: 12px;
-  padding: 12px 16px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--accent);
-  color: var(--text);
-  /* espace de sécurité iPhone (Dynamic Island / Home bar) */
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  box-shadow: 0 -6px 12px rgba(0,0,0,.06);
-  z-index: 1;
+  max-height: 80vh; /* scrollable */
+  overflow-y: auto;
 }
 
+/* Bouton Valider fixé */
+.primary.fixed-btn {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+  color: #fff;
+  margin-top: 12px;
+  cursor: pointer;
+}
