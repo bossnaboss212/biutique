@@ -1,97 +1,72 @@
-:root{--bg:#0f1115;--card:#171a22;--text:#e8edf2;--muted:#aab4c0;--accent:#4cb3ff;--border:#2a2f34}
-*{box-sizing:border-box}
-html, body {
-  height: 100%;
-}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DROGUA CENTER</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
 
-body {
-  /* déjà : margin:0; font-family:system-ui; background:var(--bg); color:var(--text); */
-  min-height: 100vh;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch; /* iOS: scroll fluide */
-}
+    <header class="top">
+      <h1>
+        <img src="img/logo.png" alt="Drogua Center" style="max-width:200px; height:auto;">
+      </h1>
+      <button id="cartBtn" class="btn">🛒 <span id="badge">0</span></button>
+    </header>
 
-/* Tous les <main> (tu en as 2) deviennent scrollables
-   et on laisse de la place en bas pour la barre + le bouton */
-main {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding-bottom: calc(110px + env(safe-area-inset-bottom));
-}
+    <!-- Filtres -->
+    <div id="filters" class="filters"></div>
 
-/* Sécurité: si le navigateur ne supporte pas env() */
-@supports not (padding-bottom: env(safe-area-inset-bottom)) {
-  main { padding-bottom: 110px; }
-}
+    <!-- Pages -->
+    <main id="page-home" class="page active">
+      <div id="grid" class="grid"></div>
+    </main>
 
-/* Empêche le contenu d’être caché derrière la barre du bas */
-.bottom {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 1000;
-}
+    <main id="page-infos" class="page">
+      <div class="card p">
+        <h2>Infos</h2>
+        <ul class="links">
+          <li><a target="_blank" href="https://t.me/+HT0vp95G9zY2ZTJk">CANAL PRINCIPAL</a></li>
+          <li><a target="_blank" href="https://t.me/+usSbDJ0fYsk5ZTG0">CANAL PHOTO</a></li>
+          <li><a target="_blank" href="https://snapchat.com/t/jR2yW7xa">Snapchat secours</a></li>
+        </ul>
+        <div class="muted small">Snapchat principal : <a target="_blank" href="https://snapchat.com/t/l9gurvAj">snapchat.com/t/l9gurvAj</a></div>
+      </div>
+    </main>
 
-/* Si tu veux que le bouton "Valider" soit TOUJOURS visible,
-   donne-lui l’id validateBtn (voir plus bas) */
-#validateBtn {
-  position: fixed;
-  left: 50%;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  width: 92%;
-  max-width: 480px;
-  z-index: 1100;
-}
+    <!-- Panier -->
+    <section id="cartSheet" class="sheet hidden">
+      <div class="sheet-card">
+        <div class="sheet-header">
+          <h2>Panier</h2>
+          <button id="closeCart">✖</button>
+        </div>
+        <div id="lines"></div>
+        <div class="total">Total: <b id="total">0,00 €</b></div>
+        <div class="delivery">
+          <label><input type="radio" name="delivery" value="Livraison sur Millau" checked> Livraison sur Millau</label>
+          <label><input type="radio" name="delivery" value="Livraison extérieure (+20€)"> Livraison extérieure (+20€)</label>
+        </div>
+        <input id="addr" placeholder="Adresse (auto-complétion)">
+        <div id="suggestions"></div>
 
-/* iOS: évite le zoom auto sur les inputs qui casse la mise en page */
-@supports (-webkit-touch-callout: none) {
-  input, select, textarea { font-size: 16px; }
-}
+        <!-- Bouton corrigé -->
+        <button id="checkout" class="primary fixed-btn">Valider</button>
+      </div>
+    </section>
 
-body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
-.top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
-.btn{background:#202633;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer}
-.filters{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px}
-.filters .chip{background:#1b2029;border:1px solid var(--border);padding:6px 10px;border-radius:999px;cursor:pointer}
-.page{display:none;padding-bottom:64px}
-.page.active{display:block}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-.thumb{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
-.meta{padding:8px 10px}
-.p{padding:12px}
-.links{list-style:none;padding-left:0}
-.links li{margin:8px 0}
-.muted{color:var(--muted)}
-.small{font-size:12px}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#12161d;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px}
-.tab{background:transparent;border:none;color:var(--text);font-weight:600}
-.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end}
-.sheet-card{background:var(--card);border:1px solid var(--border);border-top-left-radius:16px;border-top-right-radius:16px;padding:12px;width:100%}
-.hidden{display:none}
-#lines .line{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:12px;padding:8px;margin:6px 0}
-#lines img, #lines video{width:44px;height:44px;border-radius:8px;object-fit:cover}
-.total{display:flex;justify-content:space-between;margin:8px 2px}
-.primary{background:var(--accent);color:#082033;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-input,textarea,select{background:#0d1117;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px 12px;width:100%}
-#suggestions{background:#0b0f15;border:1px solid var(--border);border-radius:10px;margin-top:6px;max-height:160px;overflow:auto}
-#suggestions div{padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer}
-.review-form{display:grid;gap:8px;margin-top:12px}
-.fixed-btn {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: env(safe-area-inset-bottom, 0); /* iOS safe zone */
-  margin: 0 auto;
-  width: 90%;
-  max-width: 400px;
-  padding: 14px;
-  background: var(--accent, #4cb3ff);
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: none;
-  z-index: 1000;
-}
+    <!-- Nav bas -->
+    <nav class="bottom">
+      <button data-tab="home" class="tab active">Accueil</button>
+      <button data-tab="infos" class="tab">Infos</button>
+      <button data-tab="avis" class="tab">Avis</button>
+      <button data-tab="support" class="tab">Support</button>
+    </nav>
 
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
