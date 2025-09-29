@@ -206,3 +206,14 @@ sheet?.addEventListener('click', (e)=>{
   if(e.target === sheet) hideSheet(); 
 });
 
+/* Quand le panier est ouvert, empêcher le body de bloquer */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Rendre le contenu du panier scrollable */
+#cartSheet .sheet-card {
+  max-height: 80vh;   /* 80% de la hauteur de l'écran */
+  overflow-y: auto;   /* Activer le scroll vertical */
+  padding-bottom: 100px; /* éviter que le bouton soit caché */
+}
