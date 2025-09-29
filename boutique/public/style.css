@@ -70,3 +70,52 @@
   <script src="app.js"></script>
 </body>
 </html>
+
+/* ====== Feuille (overlay panier) ====== */
+.sheet {
+  position: fixed;
+  inset: 0;
+  display: none;                  /* cachée par défaut */
+  background: rgba(0,0,0,.45);
+  overflow: hidden;               /* on bloque le scroll derrière */
+}
+.sheet:not(.hidden){
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Carte du panier (le panneau qui remonte) */
+.sheet-card{
+  background: var(--card);
+  width: 100%;
+  max-height: 85vh;               /* limite la hauteur sur mobile */
+  overflow-y: auto;               /* ⟵ on scrolle à l’intérieur */
+  -webkit-overflow-scrolling: touch;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 12px;
+  display: block;                 /* important pour sticky */
+}
+
+/* Empêche la page derrière de scroller quand la feuille est ouverte */
+body.modal-open{ overflow: hidden; }
+
+/* ====== Bouton Valider collé en bas de la feuille ====== */
+.fixed-btn{
+  position: sticky;               /* colle au bas du viewport de la feuille */
+  bottom: 0;
+  left: 0; right: 0;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  color: var(--text);
+  /* espace de sécurité iPhone (Dynamic Island / Home bar) */
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  box-shadow: 0 -6px 12px rgba(0,0,0,.06);
+  z-index: 1;
+}
+
