@@ -21,12 +21,21 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // Healthcheck (utile pour tester rapidement)
 app.get('/', (req, res) => res.send('OK'));
 
-// ===== Webhook Telegram =====
+// ===== Webhook Telegram (complet) =====
+
+// 🔐 Variables d'env attendues (Railway > Variables) :
+// TELEGRAM_TOKEN   -> ton token bot Telegram
+// WEBAPP_URL       -> https://meek-meerkat-a2e41f.netlify.app  (ta boutique)
+// ADMIN_URL        -> https://biutique-production.up.railway.app/admin.html  (admin)
+// ADMIN_CHAT_ID    -> (optionnel) id Telegram autorisé pour l’admin (user ou groupe)
+
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TG_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 const WEBAPP_URL = process.env.WEBAPP_URL || 'https://meek-meerkat-a2e41f.netlify.app';
+const ADMIN_URL = process.env.ADMIN_URL || 'https://biutique-production.up.railway.app/admin.html';
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || ''; // ex: -4634037286
 
-// Petit helper pour envoyer un message texte
+// Petit helper: message texte simple
 async function tgSendMessage(chatId, text) {
   try {
     await fetch(`${TG_API}/sendMessage`, {
@@ -35,15 +44,15 @@ async function tgSendMessage(chatId, text) {
       body: JSON.stringify({
         chat_id: chatId,
         text,
-        parse_mode: 'HTML',
-      }),
+        parse_mode: 'HTML'
+      })
     });
   } catch (e) {
     console.error('sendMessage error:', e);
   }
 }
 
-// Envoie un message avec un bouton Web App
+// Bouton Web App (ouvre une URL dans Telegram)
 async function tgSendWebAppKeyboard(chatId, text, webUrl) {
   try {
     await fetch(`${TG_API}/sendMessage`, {
@@ -54,60 +63,89 @@ async function tgSendWebAppKeyboard(chatId, text, webUrl) {
         text,
         parse_mode: 'HTML',
         reply_markup: {
-          keyboard: [
-            [
-              {
-                text: '🛍️ Ouvrir la boutique',
-                web_app: { url: webUrl },
-              },
-            ],
-          ],
+          keyboard: [[ { text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } } ]],
           resize_keyboard: true,
-          one_time_keyboard: false,
-        },
-      }),
+          one_time_keyboard: false
+        }
+      })
     });
   } catch (e) {
     console.error('send webapp keyboard error:', e);
   }
 }
 
-// Healthcheck simple (utile dans le navigateur)
-app.get('/', (_req, res) => res.send('OK ✅'));
+// Bouton Web App pour l’admin
+async function tgSendAdminLink(chatId) {
+  try {
+    await fetch(`${TG_API}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: '🔐 Accès admin',
+        parse_mode: 'HTML',
+        reply_markup: {
+          keyboard: [[ { text: "🛠 Ouvrir l’admin", web_app: { url: ADMIN_URL } } ]],
+          resize_keyboard: true,
+          one_time_keyboard: false
+        }
+      })
+    });
+  } catch (e) {
+    console.error('send admin keyboard error:', e);
+  }
+}
 
-// GET /webhook pour vérifier rapidement dans un navigateur
-app.get('/webhook', (_req, res) => {
+// Healthcheck rapide (navigateur)
+app.get('/', (req, res) => res.send('OK'));
+
+// Vérifier que la route existe (navigateur)
+app.get('/webhook', (req, res) => {
   res.status(200).send('Webhook OK 🚀');
 });
 
-// POST /webhook : point d’entrée officiel Telegram
+// Réception Telegram
 app.post('/webhook', express.json(), async (req, res) => {
   try {
     const update = req.body;
 
-    // Tou-jours répondre 200 à Telegram le plus vite possible
-    // (on fait nos envois en await, mais on peut aussi les lancer en "fire & forget")
     if (update?.message) {
       const chatId = update.message.chat.id;
       const text = (update.message.text || '').trim();
 
+      // /start  -> bouton boutique
       if (text === '/start') {
         await tgSendWebAppKeyboard(
           chatId,
-          'Bienvenue 👋\nAppuie sur le bouton ci-dessous pour ouvrir la boutique.',
+          'Bienvenue 👋\nAppuie sur le bouton pour ouvrir la boutique.',
           WEBAPP_URL
         );
-      } else {
-        await tgSendMessage(chatId, '✅ Webhook OK (message reçu).');
+        return res.sendStatus(200);
       }
-    } else {
-      // autres types d’updates (callback_query, etc.) — ignorés pour l’instant
+
+      // /admin  -> bouton admin (si restreint, vérifie ADMIN_CHAT_ID)
+      if (text === '/admin') {
+        if (ADMIN_CHAT_ID && String(chatId) !== String(ADMIN_CHAT_ID)) {
+          await tgSendMessage(chatId, '⛔️ Accès refusé.');
+        } else {
+          await tgSendAdminLink(chatId);
+        }
+        return res.sendStatus(200);
+      }
+
+      // Autre: petit help
+      await tgSendMessage(
+        chatId,
+        'Commandes disponibles:\n' +
+        '• /start  → ouvrir la boutique 🛍\n' +
+        '• /admin  → panneau admin 🔐'
+      );
     }
 
-    return res.sendStatus(200);
+    res.sendStatus(200); // Toujours 200 pour Telegram
   } catch (err) {
     console.error('webhook error:', err);
-    return res.sendStatus(200); // on renvoie 200 même en cas d’erreur pour ne pas bloquer Telegram
+    res.sendStatus(200);
   }
 });
 
