@@ -184,54 +184,62 @@ document.getElementById('revSubmit').onclick = ()=>{
 };
 renderReviews();
 
-// === Gestion ouverture/fermeture du panier ===
-const sheet = document.getElementById('cartSheet');
-const cartBtn = document.getElementById('cartBtn');
-const closeCart = document.getElementById('closeCart');
+/* === Gestion ouverture / fermeture du panier (version corrigée iOS/Telegram) === */
 
-// --- Rustine iOS : bloquer le scroll du fond quand le panier est ouvert ---
-const mainEl = document.querySelector('main');
+// Sélecteurs
+const sheet   = document.getElementById('cartSheet');   // <section id="cartSheet" class="sheet hidden">
+const cartBtn = document.getElementById('cartBtn');     // bouton panier dans le header
+const closeCart = document.getElementById('closeCart'); // bouton "x" dans le sheet
 
-// Bloque le scroll de la page produit derrière si le sheet est ouvert
-if (mainEl) {
-  mainEl.addEventListener('touchmove', (e) => {
-    if (document.body.classList.contains('modal-open')) {
-      e.preventDefault();
-    }
-  }, { passive: false });
+// Mémorisation du scroll du fond
+let scrollPos = 0;
+
+function openSheet() {
+  if (!sheet) return;
+
+  // Affiche le sheet
+  sheet.classList.remove('hidden');
+
+  // Fige le fond et mémorise la position (anti-saut iOS)
+  scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.style.top = `-${scrollPos}px`;
+  document.body.classList.add('modal-open');
 }
 
-// Autorise le scroll à l’intérieur du panier et évite la propagation
-sheet.addEventListener('touchmove', (e) => {
-  e.stopPropagation();
-}, { passive: false });
+function hideSheet() {
+  if (!sheet) return;
 
+  // Cache le sheet
+  sheet.classList.add('hidden');
 
-function openSheet(){ 
-  sheet.classList.remove('hidden'); 
-  document.body.classList.add('modal-open'); 
-}
-function hideSheet(){ 
-  sheet.classList.add('hidden');    
-  document.body.classList.remove('modal-open'); 
+  // Défige le fond et restaure la position
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, scrollPos);
 }
 
+// Listeners d’ouverture/fermeture
 cartBtn?.addEventListener('click', openSheet);
 closeCart?.addEventListener('click', hideSheet);
 
-// Clique sur le fond noir = ferme le panier
-sheet?.addEventListener('click', (e)=>{ 
-  if(e.target === sheet) hideSheet(); 
+// Cliquer sur l’overlay (fond noir du sheet) ferme le panier
+sheet?.addEventListener('click', (e) => {
+  // si on clique exactement sur le conteneur externe (et pas la carte)
+  if (e.target === sheet) hideSheet();
 });
 
-/* Quand le panier est ouvert, empêcher le body de bloquer */
-body.modal-open {
-  overflow: hidden;
-}
+// ---------- Rustines iOS / Telegram -----------
 
-/* Rendre le contenu du panier scrollable */
-#cartSheet .sheet-card {
-  max-height: 80vh;   /* 80% de la hauteur de l'écran */
-  overflow-y: auto;   /* Activer le scroll vertical */
-  padding-bottom: 100px; /* éviter que le bouton soit caché */
-}
+// Empêche de scroller le fond quand le panier est ouvert
+const mainEl = document.querySelector('main');
+mainEl?.addEventListener('touchmove', (e) => {
+  if (document.body.classList.contains('modal-open')) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Laisse scroller l’intérieur du sheet sans propager au fond
+const sheetCard = sheet?.querySelector('.sheet-card');
+sheetCard?.addEventListener('touchmove', (e) => {
+  e.stopPropagation();
+}, { passive: false });
