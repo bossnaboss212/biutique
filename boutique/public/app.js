@@ -189,6 +189,24 @@ const sheet = document.getElementById('cartSheet');
 const cartBtn = document.getElementById('cartBtn');
 const closeCart = document.getElementById('closeCart');
 
+// --- Rustine iOS : bloquer le scroll du fond quand le panier est ouvert ---
+const mainEl = document.querySelector('main');
+
+// Bloque le scroll de la page produit derrière si le sheet est ouvert
+if (mainEl) {
+  mainEl.addEventListener('touchmove', (e) => {
+    if (document.body.classList.contains('modal-open')) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
+// Autorise le scroll à l’intérieur du panier et évite la propagation
+sheet.addEventListener('touchmove', (e) => {
+  e.stopPropagation();
+}, { passive: false });
+
+
 function openSheet(){ 
   sheet.classList.remove('hidden'); 
   document.body.classList.add('modal-open'); 
