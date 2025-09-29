@@ -18,6 +18,47 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// Healthcheck (utile pour tester rapidement)
+app.get('/', (req, res) => res.send('OK'));
+
+// ===== Webhook Telegram =====
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const TG_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
+
+async function tgSendMessage(chatId, text) {
+  try {
+    await fetch(`${TG_API}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    });
+  } catch (e) {
+    console.error('sendMessage error:', e);
+  }
+}
+
+app.post('/webhook', express.json(), async (req, res) => {
+  try {
+    const update = req.body;
+
+    // Réponse simple pour valider que le webhook marche
+    if (update?.message) {
+      const chatId = update.message.chat.id;
+      const text = update.message.text || '';
+      if (text === '/start') {
+        await tgSendMessage(chatId, '👋 Bot en ligne !');
+      } else {
+        await tgSendMessage(chatId, '✅ Webhook OK (message reçu).');
+      }
+    }
+
+    res.sendStatus(200); // Très important: toujours répondre 200
+  } catch (err) {
+    console.error('webhook error:', err);
+    res.sendStatus(200);
+  }
+});
+
 // ---------- DB ----------
 let db;
 (async () => {
