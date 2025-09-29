@@ -1,5 +1,53 @@
 :root{--bg:#0f1115;--card:#171a22;--text:#e8edf2;--muted:#aab4c0;--accent:#4cb3ff;--border:#2a2f34}
 *{box-sizing:border-box}
+html, body {
+  height: 100%;
+}
+
+body {
+  /* déjà : margin:0; font-family:system-ui; background:var(--bg); color:var(--text); */
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* iOS: scroll fluide */
+}
+
+/* Tous les <main> (tu en as 2) deviennent scrollables
+   et on laisse de la place en bas pour la barre + le bouton */
+main {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+}
+
+/* Sécurité: si le navigateur ne supporte pas env() */
+@supports not (padding-bottom: env(safe-area-inset-bottom)) {
+  main { padding-bottom: 110px; }
+}
+
+/* Empêche le contenu d’être caché derrière la barre du bas */
+.bottom {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 1000;
+}
+
+/* Si tu veux que le bouton "Valider" soit TOUJOURS visible,
+   donne-lui l’id validateBtn (voir plus bas) */
+#validateBtn {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 480px;
+  z-index: 1100;
+}
+
+/* iOS: évite le zoom auto sur les inputs qui casse la mise en page */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px; }
+}
+
 body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
 .top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
 .btn{background:#202633;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer}
