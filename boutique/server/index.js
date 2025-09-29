@@ -24,43 +24,90 @@ app.get('/', (req, res) => res.send('OK'));
 // ===== Webhook Telegram =====
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TG_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://meek-meerkat-a2e41f.netlify.app';
 
+// Petit helper pour envoyer un message texte
 async function tgSendMessage(chatId, text) {
   try {
     await fetch(`${TG_API}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+      }),
     });
   } catch (e) {
     console.error('sendMessage error:', e);
   }
 }
 
-// Vérifier que la route existe (test navigateur)
-app.get('/webhook', (req, res) => {
+// Envoie un message avec un bouton Web App
+async function tgSendWebAppKeyboard(chatId, text, webUrl) {
+  try {
+    await fetch(`${TG_API}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+        reply_markup: {
+          keyboard: [
+            [
+              {
+                text: '🛍️ Ouvrir la boutique',
+                web_app: { url: webUrl },
+              },
+            ],
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: false,
+        },
+      }),
+    });
+  } catch (e) {
+    console.error('send webapp keyboard error:', e);
+  }
+}
+
+// Healthcheck simple (utile dans le navigateur)
+app.get('/', (_req, res) => res.send('OK ✅'));
+
+// GET /webhook pour vérifier rapidement dans un navigateur
+app.get('/webhook', (_req, res) => {
   res.status(200).send('Webhook OK 🚀');
 });
 
+// POST /webhook : point d’entrée officiel Telegram
 app.post('/webhook', express.json(), async (req, res) => {
   try {
     const update = req.body;
 
-    // Réponse simple pour valider que le webhook marche
+    // Tou-jours répondre 200 à Telegram le plus vite possible
+    // (on fait nos envois en await, mais on peut aussi les lancer en "fire & forget")
     if (update?.message) {
       const chatId = update.message.chat.id;
-      const text = update.message.text || '';
+      const text = (update.message.text || '').trim();
+
       if (text === '/start') {
-        await tgSendMessage(chatId, '👋 Bot en ligne !');
+        await tgSendWebAppKeyboard(
+          chatId,
+          'Bienvenue 👋\nAppuie sur le bouton ci-dessous pour ouvrir la boutique.',
+          WEBAPP_URL
+        );
       } else {
         await tgSendMessage(chatId, '✅ Webhook OK (message reçu).');
       }
+    } else {
+      // autres types d’updates (callback_query, etc.) — ignorés pour l’instant
     }
 
-    res.sendStatus(200); // Très important: toujours répondre 200
+    return res.sendStatus(200);
   } catch (err) {
     console.error('webhook error:', err);
-    res.sendStatus(200);
+    return res.sendStatus(200); // on renvoie 200 même en cas d’erreur pour ne pas bloquer Telegram
   }
 });
 
