@@ -18,154 +18,75 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Healthcheck (utile pour tester rapidement)
-app.get('/', (req, res) => res.send('OK'));
-
 // =============================
 //   TELEGRAM WEBHOOK COMPLET
 // =============================
 
-// Variables d'env attendues (Railway → Variables)
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://meek-meerkat-a2e41f.netlify.app';
 const ADMIN_URL      = process.env.ADMIN_URL   || 'https://biutique-production.up.railway.app/admin.html';
-const ADMIN_CHAT_ID  = process.env.ADMIN_CHAT_ID || ''; // ex: -4634037286 (groupe) ou chat privé (positif)
-const ADMIN_USER_ID  = process.env.ADMIN_USER_ID || ''; // ex: 123456789 (ton user id)
+const ADMIN_CHAT_ID  = (process.env.ADMIN_CHAT_ID || '').trim();
+const ADMIN_USER_ID  = (process.env.ADMIN_USER_ID || '').trim();
+const ADMIN_OPEN     = (process.env.ADMIN_OPEN || '').trim() === '1';
 
 const TG_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
-// ---------- helpers ----------
+// helpers
 async function tgSendMessage(chatId, text, extra = {}) {
-  try {
-    await fetch(`${TG_API}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', ...extra })
-    });
-  } catch (e) {
-    console.error('tgSendMessage error:', e);
-  }
+  await fetch(`${TG_API}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode:'HTML', ...extra })
+  }).catch(e => console.error('tgSendMessage error:', e));
 }
 
 async function tgSendWebAppKeyboard(chatId, text, webUrl) {
   return tgSendMessage(chatId, text, {
     reply_markup: {
-      keyboard: [[ { text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } } ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
+      keyboard: [[ { text:'🛍 Ouvrir la boutique', web_app:{ url:webUrl } } ]],
+      resize_keyboard: true, one_time_keyboard: false
     }
   });
 }
-
 async function tgSendAdminKeyboard(chatId, text, adminUrl) {
   return tgSendMessage(chatId, text, {
     reply_markup: {
-      keyboard: [[ { text: "🛠 Ouvrir l’admin", web_app: { url: adminUrl } } ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
+      keyboard: [[ { text:"🛠 Ouvrir l’admin", web_app:{ url:adminUrl } } ]],
+      resize_keyboard: true, one_time_keyboard: false
     }
   });
 }
-
 async function tgSendBothKeyboards(chatId, text, webUrl, adminUrl) {
   return tgSendMessage(chatId, text, {
     reply_markup: {
       keyboard: [[
-        { text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } },
-        { text: "🛠 Ouvrir l’admin",    web_app: { url: adminUrl } }
+        { text:'🛍 Ouvrir la boutique', web_app:{ url:webUrl } },
+        { text:"🛠 Ouvrir l’admin",    web_app:{ url:adminUrl } }
       ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
+      resize_keyboard: true, one_time_keyboard: false
     }
   });
 }
 
-// ---------- routes de test ----------
+// tests
 app.get('/', (_req, res) => res.status(200).send('OK'));
 app.get('/webhook', (_req, res) => res.status(200).send('Webhook OK 🚀'));
 
-// =============================
-//   TELEGRAM WEBHOOK COMPLET
-// =============================
-
-// Variables d'env attendues (Railway → Variables)
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://meek-meerkat-a2e41f.netlify.app';
-const ADMIN_URL      = process.env.ADMIN_URL   || 'https://biutique-production.up.railway.app/admin.html';
-const ADMIN_CHAT_ID  = (process.env.ADMIN_CHAT_ID || '').trim();  // ex: -4634037286 (groupe) ou chat privé (positif)
-const ADMIN_USER_ID  = (process.env.ADMIN_USER_ID || '').trim();  // ex: 123456789 (ton user id)
-const ADMIN_OPEN     = (process.env.ADMIN_OPEN || '').trim() === '1'; // bypass temporaire
-
-const TG_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
-
-// ---------- helpers ----------
-async function tgSendMessage(chatId, text, extra = {}) {
-  try {
-    await fetch(`${TG_API}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', ...extra })
-    });
-  } catch (e) {
-    console.error('tgSendMessage error:', e);
-  }
-}
-
-async function tgSendWebAppKeyboard(chatId, text, webUrl) {
-  return tgSendMessage(chatId, text, {
-    reply_markup: {
-      keyboard: [[ { text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } } ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
-    }
-  });
-}
-
-async function tgSendAdminKeyboard(chatId, text, adminUrl) {
-  return tgSendMessage(chatId, text, {
-    reply_markup: {
-      keyboard: [[ { text: "🛠 Ouvrir l’admin", web_app: { url: adminUrl } } ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
-    }
-  });
-}
-
-async function tgSendBothKeyboards(chatId, text, webUrl, adminUrl) {
-  return tgSendMessage(chatId, text, {
-    reply_markup: {
-      keyboard: [[
-        { text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } },
-        { text: "🛠 Ouvrir l’admin",    web_app: { url: adminUrl } }
-      ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
-    }
-  });
-}
-
-// ---------- routes de test ----------
-app.get('/', (_req, res) => res.status(200).send('OK'));
-app.get('/webhook', (_req, res) => res.status(200).send('Webhook OK 🚀'));
-
-// ---------- webhook Telegram ----------
+// webhook
 app.post('/webhook', express.json(), async (req, res) => {
   try {
-    const update = req.body;
-    const msg    = update?.message;
+    const msg  = req.body?.message;
     if (!msg) return res.sendStatus(200);
 
     const chatId = msg.chat.id;
     const fromId = msg.from.id;
     const text   = (msg.text || '').trim();
 
-    // Détection admin (user OU chat) + bypass
     const isAdminCtx =
       ADMIN_OPEN ||
       (ADMIN_CHAT_ID && String(chatId) === String(ADMIN_CHAT_ID)) ||
       (ADMIN_USER_ID && String(fromId) === String(ADMIN_USER_ID));
 
-    // ---- commandes debug utiles ----
     if (text === '/whoami') {
       await tgSendMessage(chatId, `chatId: <code>${chatId}</code>\nuserId: <code>${fromId}</code>`);
       return res.sendStatus(200);
@@ -181,26 +102,15 @@ app.post('/webhook', express.json(), async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // ---- /start ----
     if (text === '/start') {
       if (isAdminCtx) {
-        await tgSendBothKeyboards(
-          chatId,
-          'Bienvenue 👋\nChoisis une action :',
-          WEBAPP_URL,
-          ADMIN_URL
-        );
+        await tgSendBothKeyboards(chatId, 'Bienvenue 👋\nChoisis une action :', WEBAPP_URL, ADMIN_URL);
       } else {
-        await tgSendWebAppKeyboard(
-          chatId,
-          'Bienvenue 👋\nAppuie sur le bouton pour ouvrir la boutique.',
-          WEBAPP_URL
-        );
+        await tgSendWebAppKeyboard(chatId, 'Bienvenue 👋\nAppuie sur le bouton pour ouvrir la boutique.', WEBAPP_URL);
       }
       return res.sendStatus(200);
     }
 
-    // ---- /admin ----
     if (text === '/admin') {
       if (!isAdminCtx) {
         await tgSendMessage(chatId, '⛔️ Accès refusé.');
@@ -210,7 +120,6 @@ app.post('/webhook', express.json(), async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // ---- aide par défaut ----
     await tgSendMessage(
       chatId,
       'Commandes disponibles :\n' +
@@ -219,10 +128,9 @@ app.post('/webhook', express.json(), async (req, res) => {
       '• /whoami → afficher vos IDs\n' +
       '• /debug  → voir les variables lues par le serveur'
     );
-
     return res.sendStatus(200);
-  } catch (err) {
-    console.error('webhook error:', err);
+  } catch (e) {
+    console.error('webhook error:', e);
     return res.sendStatus(200);
   }
 });
