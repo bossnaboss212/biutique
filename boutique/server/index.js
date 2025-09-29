@@ -37,6 +37,11 @@ async function tgSendMessage(chatId, text) {
   }
 }
 
+// Vérifier que la route existe (test navigateur)
+app.get('/webhook', (req, res) => {
+  res.status(200).send('Webhook OK 🚀');
+});
+
 app.post('/webhook', express.json(), async (req, res) => {
   try {
     const update = req.body;
