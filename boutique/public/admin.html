@@ -1,48 +1,700 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - DROGUA CENTER</title>
   <style>
-    body{font-family:system-ui;padding:20px;background:#0f1115;color:#e8edf2}
-    input,button{padding:10px;border-radius:8px;border:1px solid #2a2f34;background:#0d1117;color:#e8edf2}
-    table{width:100%;border-collapse:collapse;margin-top:14px}
-    th,td{border:1px solid #2a2f34;padding:8px}
-    .muted{color:#aab4c0}
+:root{--bg:#0d1419;--card:#1e2936;--text:#e8edf2;--muted:#7a8594;--accent:#5ba3f5;--border:#2a3441;--success:#10b981;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding:20px}
+
+.container{max-width:1200px;margin:0 auto}
+h1{margin-bottom:30px;text-align:center}
+
+/* Login */
+#auth{max-width:400px;margin:100px auto;background:var(--card);padding:30px;border-radius:16px;border:1px solid var(--border)}
+#auth h2{margin-bottom:20px;text-align:center}
+input,button{padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;font-size:14px;margin-bottom:10px}
+input:focus{outline:none;border-color:var(--accent)}
+button{background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;transition:all 0.2s}
+button:hover{background:#6baff7;transform:translateY(-1px)}
+
+/* Dashboard */
+#dash{display:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:30px}
+.stat-card{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border)}
+.stat-card h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.stat-card .value{font-size:32px;font-weight:700;color:var(--accent)}
+
+/* Tabs */
+.tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.tab-btn{background:transparent;border:none;color:var(--muted);padding:12px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Table */
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
+th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:#0d1419;font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase}
+tr:hover{background:#252d38}
+.badge{background:#2a3441;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.badge.success{background:rgba(16,185,129,0.2);color:#10b981}
+.badge.warning{background:rgba(245,158,11,0.2);color:#f59e0b}
+
+select{padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
+select:disabled{opacity:0.5;cursor:not-allowed}
+
+/* Actions */
+.actions{display:flex;gap:8px}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;border:none;cursor:pointer;transition:all 0.2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm:hover{transform:translateY(-1px);opacity:0.9}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
   </style>
 </head>
 <body>
-  <h1>Admin</h1>
+<div class="container">
+  <!-- Login -->
   <div id="auth">
-    <input id="pass" placeholder="Mot de passe" type="password" autocomplete="current-password">
+    <h2>🔐 Admin Panel</h2>
+    <input id="pass" type="password" placeholder="Mot de passe" autocomplete="current-password">
     <button id="login">Se connecter</button>
   </div>
-  <div id="dash" style="display:none">
-    <div>Total CA: <b id="ca">0,00 €</b></div>
-    <table>
-      <thead><tr><th>ID</th><th>Date</th><th>Client</th><th>Type</th><th>Total</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
+
+  <!-- Dashboard -->
+  <div id="dash">
+    <h1>📊 Dashboard Admin</h1>
+    
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Chiffre d'affaires</h3>
+        <div class="value" id="totalCA">0,00 €</div>
+      </div>
+      <div class="stat-card">
+        <h3>Nombre de commandes</h3>
+        <div class="value" id="totalOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Panier moyen</h3>
+        <div class="value" id="avgOrder">0,00 €</div>
+      </div>
+      <div class="stat-card">
+        <h3>Produit le plus vendu</h3>
+        <div class="value" style="font-size:20px" id="topProduct">-</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="orders">Commandes</button>
+      <button class="tab-btn" data-tab="stock">Stock</button>
+      <button class="tab-btn" data-tab="products">Produits</button>
+      <button class="tab-btn" data-tab="reviews">Avis</button>
+      <button class="tab-btn" data-tab="settings">Paramètres</button>
+    </div>
+
+    <!-- Tab: Commandes -->
+    <div class="tab-content active" id="tab-orders">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Articles</th>
+            <th>Total</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTable">
+          <tr>
+            <td colspan="6" class="empty-state">Aucune commande pour le moment</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tab: Stock -->
+    <div class="tab-content" id="tab-stock">
+      <!-- Stats Stock -->
+      <div class="stats" style="margin-bottom:20px">
+        <div class="stat-card">
+          <h3>Valeur totale du stock</h3>
+          <div class="value" id="stockValue">0,00 €</div>
+        </div>
+        <div class="stat-card">
+          <h3>Articles en rupture</h3>
+          <div class="value" style="color:var(--danger)" id="stockOut">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Alertes stock bas</h3>
+          <div class="value" style="color:#f59e0b" id="stockLow">0</div>
+        </div>
+      </div>
+
+      <!-- Formulaire mouvement -->
+      <div style="background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px">
+        <h3 style="margin-bottom:16px">➕ Nouveau mouvement de stock</h3>
+        <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div>
+            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Produit</label>
+            <select id="stockProduct" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+              <option value="">Sélectionner...</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Variant</label>
+            <select id="stockVariant" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+              <option value="">Sélectionner...</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Type</label>
+            <select id="stockType" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+              <option value="in">Entrée ➕</option>
+              <option value="out">Sortie ➖</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Quantité</label>
+            <input id="stockQty" type="number" min="1" value="1" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;margin:0">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Motif</label>
+            <input id="stockReason" placeholder="Optionnel" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;margin:0">
+          </div>
+          <button id="addStockMovement" style="padding:10px 20px;margin:0;white-space:nowrap">Ajouter</button>
+        </div>
+      </div>
+
+      <!-- Stock actuel -->
+      <h3 style="margin-bottom:12px">📦 Stock actuel par produit</h3>
+      <table style="margin-bottom:30px">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Variant</th>
+            <th>Stock actuel</th>
+            <th>Statut</th>
+            <th>Valeur</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="stockTable"></tbody>
+      </table>
+
+      <!-- Historique mouvements -->
+      <h3 style="margin-bottom:12px">📋 Historique des mouvements</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Produit</th>
+            <th>Variant</th>
+            <th>Type</th>
+            <th>Quantité</th>
+            <th>Stock après</th>
+            <th>Motif</th>
+          </tr>
+        </thead>
+        <tbody id="movementsTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Tab: Produits -->
+    <div class="tab-content" id="tab-products">
+      <table>
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Catégorie</th>
+            <th>Prix min</th>
+            <th>Variants</th>
+            <th>Note</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productsTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Tab: Avis -->
+    <div class="tab-content" id="tab-reviews">
+      <table>
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Client</th>
+            <th>Note</th>
+            <th>Commentaire</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reviewsTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Tab: Paramètres -->
+    <div class="tab-content" id="tab-settings">
+      <div style="background:var(--card);padding:30px;border-radius:12px;border:1px solid var(--border)">
+        <h3 style="margin-bottom:20px">Paramètres généraux</h3>
+        <div style="margin-bottom:20px">
+          <label style="display:block;margin-bottom:8px;color:var(--muted)">Nom de la boutique</label>
+          <input value="DROGUA CENTER" style="width:100%;margin-bottom:0">
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="display:block;margin-bottom:8px;color:var(--muted)">Frais de livraison extérieure</label>
+          <input value="20" type="number" style="width:100%;margin-bottom:0">
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="display:block;margin-bottom:8px;color:var(--muted)">Remise fidélité (tous les X achats)</label>
+          <input value="10" type="number" style="width:100%;margin-bottom:0">
+        </div>
+        <button>Sauvegarder les paramètres</button>
+        <button style="background:var(--danger);margin-top:10px" id="logoutBtn">Se déconnecter</button>
+      </div>
+    </div>
   </div>
+</div>
+
 <script>
-let token='';
+const ADMIN_PASS = 'admin123'; // Mot de passe par défaut
 const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
-document.getElementById('login').onclick = async ()=>{
-  const r = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('pass').value})});
-  const j = await r.json();
-  if(!j.ok){ alert('Mauvais mot de passe'); return; }
-  token = j.token; document.getElementById('auth').style.display='none'; document.getElementById('dash').style.display='block'; load();
+
+// Login
+document.getElementById('login').onclick = () => {
+  const pass = document.getElementById('pass').value;
+  if (pass === ADMIN_PASS) {
+    document.getElementById('auth').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    loadDashboard();
+  } else {
+    alert('Mot de passe incorrect');
+  }
 };
-async function load(){
-  const r = await fetch('/api/admin/orders',{headers:{'x-admin-token':token}});
-  const j = await r.json();
-  document.getElementById('ca').textContent = fmt(j.ca||0);
-  const tb = document.getElementById('rows'); tb.innerHTML='';
-  (j.orders||[]).forEach(o=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${o.id}</td><td>${o.created_at}</td><td>${o.customer}</td><td>${o.type}</td><td>${fmt(o.total)}</td>`;
-    tb.appendChild(tr);
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  };
+});
+
+// Logout
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('auth').style.display = 'block';
+  document.getElementById('pass').value = '';
+});
+
+// Load Dashboard
+function loadDashboard() {
+  loadStats();
+  loadOrders();
+  loadStockData();
+  loadProducts();
+  loadReviews();
+}
+
+// === GESTION STOCK ===
+const PRODUCTS_DATA = [
+  {id:1, name:'AMNESIA', variants:[{label:'3,33G',price:20},{label:'5G',price:30},{label:'10G',price:60},{label:'50G',price:250},{label:'100G',price:450}]},
+  {id:2, name:'NEEDLES KETA', variants:[{label:'1G',price:20},{label:'2G',price:40},{label:'3G',price:50},{label:'5G',price:80},{label:'10G',price:150}]},
+  {id:3, name:'CHAMPAGNE', variants:[{label:'1G',price:20},{label:'2G',price:40},{label:'3G',price:50},{label:'5G',price:80},{label:'10G',price:150}]},
+  {id:4, name:'EL JEFE', variants:[{label:'0,5G',price:30},{label:'1G',price:50},{label:'2G',price:100},{label:'5G',price:250},{label:'10G',price:430}]},
+  {id:5, name:'SKITTLEZ CAKE 120u', variants:[{label:'2,5G',price:20},{label:'5G',price:40},{label:'10G',price:70},{label:'50G',price:290}]},
+  {id:6, name:'PISTACCHIO 73u', variants:[{label:'3G',price:20},{label:'5G',price:50},{label:'10G',price:90},{label:'50G',price:250}]},
+  {id:7, name:'DEMBELE', variants:[{label:'3,5G',price:20},{label:'5G',price:30},{label:'10G',price:50},{label:'50G',price:190},{label:'100G',price:370}]},
+  {id:8, name:'LEMON X GELATO', variants:[{label:'1,66G',price:20},{label:'3,5G',price:40},{label:'5G',price:60},{label:'10G',price:110}]},
+  {id:9, name:'GEORGIA PIE', variants:[{label:'1,66G',price:20},{label:'3,5G',price:40},{label:'5G',price:60},{label:'10G',price:110}]},
+  {id:10, name:'DOMINO 280mg', variants:[{label:'3 unités',price:20},{label:'10 unités',price:60},{label:'50 unités',price:150}]},
+  {id:11, name:'FRESH FROZEN', variants:[{label:'1,1G',price:20},{label:'2,3G',price:40},{label:'3,5G',price:50},{label:'5G',price:80},{label:'10G',price:160}]}
+];
+
+function getStock() {
+  try {
+    return JSON.parse(localStorage.getItem('stock_data') || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveStock(stock) {
+  localStorage.setItem('stock_data', JSON.stringify(stock));
+}
+
+function getMovements() {
+  try {
+    return JSON.parse(localStorage.getItem('stock_movements') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveMovements(movements) {
+  localStorage.setItem('stock_movements', JSON.stringify(movements));
+}
+
+function getStockKey(productId, variant) {
+  return `${productId}_${variant}`;
+}
+
+function loadStockData() {
+  loadStockStats();
+  loadStockTable();
+  loadMovementsTable();
+  populateProductSelect();
+}
+
+function loadStockStats() {
+  const stock = getStock();
+  let totalValue = 0;
+  let outOfStock = 0;
+  let lowStock = 0;
+
+  for (const [key, qty] of Object.entries(stock)) {
+    const [productId, variant] = key.split('_');
+    const product = PRODUCTS_DATA.find(p => p.id === parseInt(productId));
+    if (product) {
+      const variantData = product.variants.find(v => v.label === variant);
+      if (variantData) {
+        totalValue += qty * variantData.price;
+        if (qty === 0) outOfStock++;
+        else if (qty < 10) lowStock++;
+      }
+    }
+  }
+
+  document.getElementById('stockValue').textContent = fmt(totalValue);
+  document.getElementById('stockOut').textContent = outOfStock;
+  document.getElementById('stockLow').textContent = lowStock;
+}
+
+function loadStockTable() {
+  const stock = getStock();
+  const tbody = document.getElementById('stockTable');
+  const rows = [];
+
+  PRODUCTS_DATA.forEach(product => {
+    product.variants.forEach(variant => {
+      const key = getStockKey(product.id, variant.label);
+      const qty = stock[key] || 0;
+      let status = '<span class="badge success">OK</span>';
+      if (qty === 0) status = '<span class="badge" style="background:rgba(239,68,68,0.2);color:#ef4444">Rupture</span>';
+      else if (qty < 10) status = '<span class="badge warning">Stock bas</span>';
+
+      rows.push(`
+        <tr>
+          <td><strong>${product.name}</strong></td>
+          <td>${variant.label}</td>
+          <td><strong style="color:var(--accent)">${qty}</strong></td>
+          <td>${status}</td>
+          <td>${fmt(qty * variant.price)}</td>
+          <td class="actions">
+            <button class="btn-sm btn-primary" data-product="${product.id}" data-variant="${variant.label}">+ Rapide</button>
+          </td>
+        </tr>
+      `);
+    });
   });
+
+  tbody.innerHTML = rows.join('');
+  
+  // Attacher les événements après création du DOM
+  tbody.querySelectorAll('.btn-sm').forEach(btn => {
+    btn.onclick = () => {
+      const productId = btn.dataset.product;
+      const variant = btn.dataset.variant;
+      quickAddStock(productId, variant);
+    };
+  });
+}
+
+function loadMovementsTable() {
+  const movements = getMovements();
+  const tbody = document.getElementById('movementsTable');
+
+  if (movements.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun mouvement pour le moment</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = movements.slice(0, 50).map(m => {
+    const product = PRODUCTS_DATA.find(p => p.id === m.productId);
+    const typeLabel = m.type === 'in' 
+      ? '<span class="badge success">➕ Entrée</span>' 
+      : '<span class="badge" style="background:rgba(239,68,68,0.2);color:#ef4444">➖ Sortie</span>';
+    
+    return `
+      <tr>
+        <td>${new Date(m.date).toLocaleString('fr-FR')}</td>
+        <td><strong>${product?.name || 'Inconnu'}</strong></td>
+        <td>${m.variant}</td>
+        <td>${typeLabel}</td>
+        <td><strong>${m.quantity}</strong></td>
+        <td>${m.stockAfter}</td>
+        <td class="muted">${m.reason || '-'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function populateProductSelect() {
+  const select = document.getElementById('stockProduct');
+  select.innerHTML = '<option value="">Sélectionner...</option>' + 
+    PRODUCTS_DATA.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  
+  select.onchange = () => {
+    const productId = parseInt(select.value);
+    const product = PRODUCTS_DATA.find(p => p.id === productId);
+    const variantSelect = document.getElementById('stockVariant');
+    
+    if (product) {
+      variantSelect.innerHTML = '<option value="">Sélectionner...</option>' +
+        product.variants.map(v => `<option value="${v.label}">${v.label}</option>`).join('');
+      variantSelect.disabled = false;
+    } else {
+      variantSelect.innerHTML = '<option value="">Sélectionner...</option>';
+      variantSelect.disabled = true;
+    }
+  };
+}
+
+function addStockMovement(productId, variant, type, quantity, reason = '') {
+  const stock = getStock();
+  const movements = getMovements();
+  const key = getStockKey(productId, variant);
+  
+  const currentStock = stock[key] || 0;
+  let newStock;
+  
+  if (type === 'in') {
+    newStock = currentStock + quantity;
+  } else {
+    newStock = Math.max(0, currentStock - quantity);
+  }
+  
+  stock[key] = newStock;
+  saveStock(stock);
+  
+  movements.unshift({
+    date: Date.now(),
+    productId,
+    variant,
+    type,
+    quantity,
+    stockAfter: newStock,
+    reason
+  });
+  saveMovements(movements);
+  
+  loadStockData();
+}
+
+document.getElementById('addStockMovement')?.addEventListener('click', () => {
+  const productId = parseInt(document.getElementById('stockProduct').value);
+  const variant = document.getElementById('stockVariant').value;
+  const type = document.getElementById('stockType').value;
+  const quantity = parseInt(document.getElementById('stockQty').value);
+  const reason = document.getElementById('stockReason').value;
+  
+  if (!productId || !variant || !quantity) {
+    alert('Veuillez remplir tous les champs obligatoires');
+    return;
+  }
+  
+  addStockMovement(productId, variant, type, quantity, reason);
+  
+  // Reset form
+  document.getElementById('stockProduct').value = '';
+  document.getElementById('stockVariant').innerHTML = '<option value="">Sélectionner...</option>';
+  document.getElementById('stockVariant').disabled = true;
+  document.getElementById('stockQty').value = '1';
+  document.getElementById('stockReason').value = '';
+  
+  alert(`Mouvement de stock ajouté avec succès !`);
+});
+
+function quickAddStock(productId, variant) {
+  const qty = prompt('Quantité à ajouter :', '10');
+  if (qty && !isNaN(qty) && parseInt(qty) > 0) {
+    addStockMovement(parseInt(productId), variant, 'in', parseInt(qty), 'Ajout rapide');
+    alert('Stock mis à jour !');
+  }
+}
+
+function loadStats() {
+  // Simuler des statistiques (à remplacer par vraies données)
+  const orders = getStoredOrders();
+  const total = orders.reduce((sum, o) => sum + o.total, 0);
+  const avg = orders.length > 0 ? total / orders.length : 0;
+  
+  document.getElementById('totalCA').textContent = fmt(total);
+  document.getElementById('totalOrders').textContent = orders.length;
+  document.getElementById('avgOrder').textContent = fmt(avg);
+  document.getElementById('topProduct').textContent = 'AMNESIA';
+}
+
+function loadOrders() {
+  const orders = getStoredOrders();
+  const tbody = document.getElementById('ordersTable');
+  
+  if (orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucune commande pour le moment</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = orders.map((o, i) => `
+    <tr>
+      <td><strong>#${i + 1}</strong></td>
+      <td>${new Date(o.date).toLocaleDateString('fr-FR')}</td>
+      <td>${o.customer}</td>
+      <td>${o.items} article(s)</td>
+      <td><strong style="color:var(--accent)">${fmt(o.total)}</strong></td>
+      <td class="actions">
+        <button class="btn-sm btn-primary">Détails</button>
+        <button class="btn-sm btn-danger" onclick="deleteOrder(${i})">Supprimer</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function loadProducts() {
+  const products = [
+    {name:'AMNESIA',category:'weed',price:20,variants:5,rating:4.5},
+    {name:'NEEDLES KETA',category:'kéta',price:20,variants:5,rating:4.8},
+    {name:'CHAMPAGNE',category:'mdma',price:20,variants:5,rating:4.7},
+    {name:'EL JEFE',category:'blanche neige',price:30,variants:5,rating:4.9},
+    {name:'SKITTLEZ CAKE',category:'filtré',price:20,variants:4,rating:4.6},
+  ];
+  
+  const tbody = document.getElementById('productsTable');
+  tbody.innerHTML = products.map(p => `
+    <tr>
+      <td><strong>${p.name}</strong></td>
+      <td><span class="badge">${p.category}</span></td>
+      <td>${fmt(p.price)}</td>
+      <td>${p.variants} variants</td>
+      <td><span style="color:#facc15">⭐ ${p.rating}</span></td>
+      <td class="actions">
+        <button class="btn-sm btn-primary">Éditer</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function loadReviews() {
+  const reviews = getAllReviews();
+  const tbody = document.getElementById('reviewsTable');
+  
+  if (reviews.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun avis pour le moment</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = reviews.map((r, i) => `
+    <tr>
+      <td><strong>${r.productName}</strong></td>
+      <td>${r.name || 'Anonyme'}</td>
+      <td><span style="color:#facc15">${'⭐'.repeat(r.stars)}</span></td>
+      <td>${r.text.substring(0, 50)}${r.text.length > 50 ? '...' : ''}</td>
+      <td>${new Date(r.date).toLocaleDateString('fr-FR')}</td>
+      <td class="actions">
+        <button class="btn-sm btn-danger" onclick="deleteReview('${r.productId}', ${i})">Supprimer</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Storage helpers
+function getStoredOrders() {
+  try {
+    return JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function getAllReviews() {
+  try {
+    const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
+    const products = {1:'AMNESIA',2:'NEEDLES KETA',3:'CHAMPAGNE',4:'EL JEFE',5:'SKITTLEZ CAKE',6:'PISTACCHIO',7:'DEMBELE',8:'LEMON X GELATO',9:'GEORGIA PIE',10:'DOMINO',11:'FRESH FROZEN'};
+    const all = [];
+    for (const [productId, revList] of Object.entries(reviews)) {
+      revList.forEach(r => {
+        all.push({...r, productId, productName: products[productId] || 'Produit'});
+      });
+    }
+    return all.sort((a, b) => b.date - a.date);
+  } catch {
+    return [];
+  }
+}
+
+function deleteOrder(index) {
+  if (confirm('Supprimer cette commande ?')) {
+    const orders = getStoredOrders();
+    orders.splice(index, 1);
+    localStorage.setItem('admin_orders', JSON.stringify(orders));
+    loadDashboard();
+  }
+}
+
+function deleteReview(productId, index) {
+  if (confirm('Supprimer cet avis ?')) {
+    try {
+      const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
+      if (reviews[productId]) {
+        reviews[productId].splice(index, 1);
+        localStorage.setItem('product_reviews', JSON.stringify(reviews));
+        loadReviews();
+      }
+    } catch(e) {
+      console.error('Error deleting review:', e);
+    }
+  }
+}
+
+// Simuler quelques commandes pour la démo
+if (!localStorage.getItem('admin_orders')) {
+  const demoOrders = [
+    {date:Date.now()-86400000,customer:'Client 1',items:2,total:60,delivery:'Millau'},
+    {date:Date.now()-172800000,customer:'Client 2',items:1,total:30,delivery:'Millau'},
+    {date:Date.now()-259200000,customer:'Client 3',items:3,total:90,delivery:'Extérieur'},
+  ];
+  localStorage.setItem('admin_orders', JSON.stringify(demoOrders));
+}
+
+// Initialiser stock de base pour la démo
+if (!localStorage.getItem('stock_data')) {
+  const initialStock = {};
+  PRODUCTS_DATA.forEach(product => {
+    product.variants.forEach(variant => {
+      const key = getStockKey(product.id, variant.label);
+      initialStock[key] = Math.floor(Math.random() * 50) + 10; // Stock aléatoire entre 10 et 60
+    });
+  });
+  localStorage.setItem('stock_data', JSON.stringify(initialStock));
+}
+
+// Initialiser quelques mouvements de démo
+if (!localStorage.getItem('stock_movements')) {
+  const demoMovements = [
+    {date:Date.now()-86400000,productId:1,variant:'5G',type:'in',quantity:50,stockAfter:65,reason:'Réapprovisionnement'},
+    {date:Date.now()-172800000,productId:1,variant:'5G',type:'out',quantity:5,stockAfter:15,reason:'Commande client'},
+    {date:Date.now()-259200000,productId:2,variant:'2G',type:'in',quantity:30,stockAfter:45,reason:'Nouvel arrivage'},
+  ];
+  localStorage.setItem('stock_movements', JSON.stringify(demoMovements));
 }
 </script>
 </body>
