@@ -5,56 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin - DROGUA CENTER</title>
   <style>
-:root{--bg:#0d1419;--card:#1e2936;--text:#e8edf2;--muted:#7a8594;--accent:#5ba3f5;--border:#2a3441;--success:#10b981;--danger:#ef4444}
+:root{--bg:#0d1419;--card:#1e2936;--text:#e8edf2;--muted:#7a8594;--accent:#5ba3f5;--border:#2a3441;--success:#10b981;--danger:#ef4444;--warning:#f59e0b}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding:20px}
 
-.container{max-width:1200px;margin:0 auto}
-h1{margin-bottom:30px;text-align:center}
+.container{max-width:1400px;margin:0 auto}
+h1{margin-bottom:30px;text-align:center;display:flex;align-items:center;justify-content:center;gap:12px}
 
 /* Login */
 #auth{max-width:400px;margin:100px auto;background:var(--card);padding:30px;border-radius:16px;border:1px solid var(--border)}
 #auth h2{margin-bottom:20px;text-align:center}
-input,button{padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;font-size:14px;margin-bottom:10px}
-input:focus{outline:none;border-color:var(--accent)}
+input,button,select,textarea{padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;font-size:14px;margin-bottom:10px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 button{background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;transition:all 0.2s}
 button:hover{background:#6baff7;transform:translateY(-1px)}
+button:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 
 /* Dashboard */
 #dash{display:none}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:30px}
-.stat-card{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border)}
+.stat-card{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);transition:all 0.2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
 .stat-card h3{font-size:14px;color:var(--muted);margin-bottom:8px}
 .stat-card .value{font-size:32px;font-weight:700;color:var(--accent)}
+.stat-card .trend{font-size:13px;margin-top:8px;display:flex;align-items:center;gap:4px}
+.trend.up{color:var(--success)}
+.trend.down{color:var(--danger)}
 
 /* Tabs */
-.tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid var(--border)}
-.tab-btn{background:transparent;border:none;color:var(--muted);padding:12px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab-btn{background:transparent;border:none;color:var(--muted);padding:12px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--text)}
 
 .tab-content{display:none}
 .tab-content.active{display:block}
 
+/* Toolbar */
+.toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{width:auto;flex:1;min-width:200px}
+.toolbar button{width:auto;margin:0}
+
 /* Table */
-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
+.table-container{background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
 th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border)}
 th{background:#0d1419;font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase}
 tr:hover{background:#252d38}
-.badge{background:#2a3441;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
+tbody tr:last-child td{border-bottom:none}
+
+.badge{background:#2a3441;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block}
 .badge.success{background:rgba(16,185,129,0.2);color:#10b981}
 .badge.warning{background:rgba(245,158,11,0.2);color:#f59e0b}
-
-select{padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
-select:disabled{opacity:0.5;cursor:not-allowed}
+.badge.danger{background:rgba(239,68,68,0.2);color:#ef4444}
+.badge.info{background:rgba(91,163,245,0.2);color:#5ba3f5}
 
 /* Actions */
 .actions{display:flex;gap:8px}
-.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;border:none;cursor:pointer;transition:all 0.2s}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;border:none;cursor:pointer;transition:all 0.2s;margin:0}
 .btn-primary{background:var(--accent);color:#fff}
+.btn-success{background:var(--success);color:#fff}
 .btn-danger{background:var(--danger);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
 .btn-sm:hover{transform:translateY(-1px);opacity:0.9}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal.active{display:flex}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{font-size:20px}
+.modal-close{background:transparent;border:none;color:var(--text);font-size:28px;cursor:pointer;padding:0;width:auto}
+.modal-body{margin-bottom:20px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end}
+
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{margin:0}
+
+/* Chart */
+.chart-container{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px}
+.chart-container h3{margin-bottom:16px;font-size:16px}
+
+/* Loading */
+.loading{display:none;justify-content:center;align-items:center;padding:40px}
+.loading.active{display:flex}
+.spinner{border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--success);padding:16px 20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:2000;opacity:0;transform:translateX(400px);transition:all 0.3s}
+.toast.show{opacity:1;transform:translateX(0)}
+.toast.error{border-left-color:var(--danger)}
+
+/* Filters */
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-chip{background:#2a3441;border:1px solid var(--border);padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.2s}
+.filter-chip:hover{background:#3a4554}
+.filter-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Stock form */
+.stock-form{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px}
+.stock-form h3{margin-bottom:16px;font-size:16px}
+.stock-grid{display:grid;grid-template-columns:2fr 2fr 1fr 1fr 2fr auto;gap:10px;align-items:end}
+.stock-grid > div label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px}
+.stock-grid input,.stock-grid select{margin:0}
+
+@media (max-width:768px){
+  .stats{grid-template-columns:1fr}
+  .toolbar{flex-direction:column}
+  .toolbar input,.toolbar select{width:100%}
+  .stock-grid{grid-template-columns:1fr;gap:12px}
+  .actions{flex-wrap:wrap}
+}
   </style>
 </head>
 <body>
@@ -68,17 +133,29 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 
   <!-- Dashboard -->
   <div id="dash">
-    <h1>📊 Dashboard Admin</h1>
+    <h1>
+      <span>📊</span>
+      <span>Dashboard Admin</span>
+      <span id="modeIndicator" style="font-size:12px;background:var(--warning);color:#000;padding:4px 10px;border-radius:6px;margin-left:12px;display:none">MODE LOCAL</span>
+    </h1>
     
     <!-- Stats -->
     <div class="stats">
       <div class="stat-card">
-        <h3>Chiffre d'affaires</h3>
+        <h3>Chiffre d'affaires total</h3>
         <div class="value" id="totalCA">0,00 €</div>
+        <div class="trend up" id="trendCA" style="display:none">
+          <span>↗</span>
+          <span>+12% vs semaine dernière</span>
+        </div>
       </div>
       <div class="stat-card">
         <h3>Nombre de commandes</h3>
         <div class="value" id="totalOrders">0</div>
+        <div class="trend up" id="trendOrders" style="display:none">
+          <span>↗</span>
+          <span>+5 cette semaine</span>
+        </div>
       </div>
       <div class="stat-card">
         <h3>Panier moyen</h3>
@@ -88,226 +165,480 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         <h3>Produit le plus vendu</h3>
         <div class="value" style="font-size:20px" id="topProduct">-</div>
       </div>
+      <div class="stat-card">
+        <h3>Valeur totale du stock</h3>
+        <div class="value" id="stockValue">0,00 €</div>
+      </div>
+      <div class="stat-card">
+        <h3>Alertes stock</h3>
+        <div class="value" style="color:var(--warning)" id="stockAlerts">0</div>
+      </div>
     </div>
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="orders">Commandes</button>
-      <button class="tab-btn" data-tab="stock">Stock</button>
-      <button class="tab-btn" data-tab="products">Produits</button>
-      <button class="tab-btn" data-tab="reviews">Avis</button>
-      <button class="tab-btn" data-tab="settings">Paramètres</button>
+      <button class="tab-btn active" data-tab="orders">📦 Commandes</button>
+      <button class="tab-btn" data-tab="finances">💰 Finances</button>
+      <button class="tab-btn" data-tab="stock">📊 Stock</button>
+      <button class="tab-btn" data-tab="products">🛍 Produits</button>
+      <button class="tab-btn" data-tab="reviews">⭐ Avis</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Paramètres</button>
     </div>
 
     <!-- Tab: Commandes -->
     <div class="tab-content active" id="tab-orders">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Articles</th>
-            <th>Total</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="ordersTable">
-          <tr>
-            <td colspan="6" class="empty-state">Aucune commande pour le moment</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="toolbar">
+        <input type="text" id="searchOrders" placeholder="🔍 Rechercher une commande...">
+        <select id="filterStatus">
+          <option value="all">Tous les statuts</option>
+          <option value="pending">En attente</option>
+          <option value="processing">En traitement</option>
+          <option value="delivered">Livré</option>
+          <option value="cancelled">Annulé</option>
+        </select>
+        <button id="exportOrders">📥 Exporter CSV</button>
+        <button id="refreshOrders">🔄 Actualiser</button>
+      </div>
+
+      <div class="loading" id="ordersLoading">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Client</th>
+              <th>Type</th>
+              <th>Articles</th>
+              <th>Total</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTable">
+            <tr>
+              <td colspan="8" class="empty-state">Aucune commande</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Finances -->
+    <div class="tab-content" id="tab-finances">
+      <!-- Stats Finances -->
+      <div class="stats" style="margin-bottom:20px">
+        <div class="stat-card">
+          <h3>Revenus totaux</h3>
+          <div class="value" style="color:var(--success)" id="totalRevenue">0,00 €</div>
+          <div class="trend up" id="revenueTrend" style="display:none">
+            <span>↗</span>
+            <span>+15% ce mois</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Dépenses totales</h3>
+          <div class="value" style="color:var(--danger)" id="totalExpenses">0,00 €</div>
+        </div>
+        <div class="stat-card">
+          <h3>Bénéfice net</h3>
+          <div class="value" id="netProfit">0,00 €</div>
+        </div>
+        <div class="stat-card">
+          <h3>Balance du mois</h3>
+          <div class="value" style="font-size:24px" id="monthBalance">0,00 €</div>
+        </div>
+      </div>
+
+      <!-- Formulaire ajout transaction -->
+      <div class="stock-form">
+        <h3>➕ Nouvelle transaction</h3>
+        <div class="stock-grid" style="grid-template-columns:1fr 1fr 2fr 1fr 2fr auto">
+          <div>
+            <label>Type</label>
+            <select id="transactionType">
+              <option value="revenue">💰 Revenu</option>
+              <option value="expense">💸 Dépense</option>
+            </select>
+          </div>
+          <div>
+            <label>Catégorie</label>
+            <select id="transactionCategory">
+              <option value="vente">Vente</option>
+              <option value="achat_stock">Achat stock</option>
+              <option value="livraison">Livraison</option>
+              <option value="salaire">Salaire</option>
+              <option value="loyer">Loyer</option>
+              <option value="publicite">Publicité</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div>
+            <label>Description</label>
+            <input id="transactionDescription" placeholder="Ex: Réapprovisionnement AMNESIA">
+          </div>
+          <div>
+            <label>Montant (€)</label>
+            <input id="transactionAmount" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div>
+            <label>Date</label>
+            <input id="transactionDate" type="date">
+          </div>
+          <button id="addTransaction">Ajouter</button>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="toolbar">
+        <select id="filterTransactionType">
+          <option value="all">Tous les types</option>
+          <option value="revenue">Revenus uniquement</option>
+          <option value="expense">Dépenses uniquement</option>
+        </select>
+        <select id="filterTransactionCategory">
+          <option value="all">Toutes les catégories</option>
+          <option value="vente">Vente</option>
+          <option value="achat_stock">Achat stock</option>
+          <option value="livraison">Livraison</option>
+          <option value="salaire">Salaire</option>
+          <option value="loyer">Loyer</option>
+          <option value="publicite">Publicité</option>
+          <option value="autre">Autre</option>
+        </select>
+        <select id="filterTransactionPeriod">
+          <option value="all">Toutes les périodes</option>
+          <option value="today">Aujourd'hui</option>
+          <option value="week">Cette semaine</option>
+          <option value="month">Ce mois</option>
+          <option value="year">Cette année</option>
+        </select>
+        <button id="exportFinances">📥 Exporter CSV</button>
+        <button id="refreshFinances">🔄 Actualiser</button>
+      </div>
+
+      <!-- Graphique simple -->
+      <div class="chart-container">
+        <h3>📈 Revenus vs Dépenses (30 derniers jours)</h3>
+        <div id="financeChart" style="display:flex;gap:20px;align-items:flex-end;height:200px;padding:20px;background:var(--bg);border-radius:8px">
+          <div style="flex:1;text-align:center;color:var(--muted)">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Historique transactions -->
+      <h3 style="margin:20px 0 12px 0">📋 Historique des transactions</h3>
+      <div class="loading" id="financesLoading">
+        <div class="spinner"></div>
+      </div>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Catégorie</th>
+              <th>Description</th>
+              <th>Montant</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTable">
+            <tr>
+              <td colspan="6" class="empty-state">Aucune transaction</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rapport par catégorie -->
+      <div class="chart-container" style="margin-top:30px">
+        <h3>📊 Dépenses par catégorie</h3>
+        <div id="categoryReport" style="padding:20px">
+          <div style="color:var(--muted);text-align:center">Aucune donnée</div>
+        </div>
+      </div>
     </div>
 
     <!-- Tab: Stock -->
     <div class="tab-content" id="tab-stock">
-      <!-- Stats Stock -->
-      <div class="stats" style="margin-bottom:20px">
-        <div class="stat-card">
-          <h3>Valeur totale du stock</h3>
-          <div class="value" id="stockValue">0,00 €</div>
-        </div>
-        <div class="stat-card">
-          <h3>Articles en rupture</h3>
-          <div class="value" style="color:var(--danger)" id="stockOut">0</div>
-        </div>
-        <div class="stat-card">
-          <h3>Alertes stock bas</h3>
-          <div class="value" style="color:#f59e0b" id="stockLow">0</div>
-        </div>
-      </div>
-
       <!-- Formulaire mouvement -->
-      <div style="background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px">
-        <h3 style="margin-bottom:16px">➕ Nouveau mouvement de stock</h3>
-        <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+      <div class="stock-form">
+        <h3>➕ Nouveau mouvement de stock</h3>
+        <div class="stock-grid">
           <div>
-            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Produit</label>
-            <select id="stockProduct" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+            <label>Produit</label>
+            <select id="stockProduct">
               <option value="">Sélectionner...</option>
             </select>
           </div>
           <div>
-            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Variant</label>
-            <select id="stockVariant" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+            <label>Variant</label>
+            <select id="stockVariant" disabled>
               <option value="">Sélectionner...</option>
             </select>
           </div>
           <div>
-            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Type</label>
-            <select id="stockType" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+            <label>Type</label>
+            <select id="stockType">
               <option value="in">Entrée ➕</option>
               <option value="out">Sortie ➖</option>
             </select>
           </div>
           <div>
-            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Quantité</label>
-            <input id="stockQty" type="number" min="1" value="1" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;margin:0">
+            <label>Quantité</label>
+            <input id="stockQty" type="number" min="1" value="1">
           </div>
           <div>
-            <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:13px">Motif</label>
-            <input id="stockReason" placeholder="Optionnel" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%;margin:0">
+            <label>Motif</label>
+            <input id="stockReason" placeholder="Optionnel">
           </div>
-          <button id="addStockMovement" style="padding:10px 20px;margin:0;white-space:nowrap">Ajouter</button>
+          <button id="addStockMovement">Ajouter</button>
         </div>
       </div>
 
       <!-- Stock actuel -->
-      <h3 style="margin-bottom:12px">📦 Stock actuel par produit</h3>
-      <table style="margin-bottom:30px">
-        <thead>
-          <tr>
-            <th>Produit</th>
-            <th>Variant</th>
-            <th>Stock actuel</th>
-            <th>Statut</th>
-            <th>Valeur</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="stockTable"></tbody>
-      </table>
+      <h3 style="margin-bottom:12px">📦 Stock actuel</h3>
+      <div class="loading" id="stockLoading">
+        <div class="spinner"></div>
+      </div>
+      <div class="table-container" style="margin-bottom:30px">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Variant</th>
+              <th>Stock actuel</th>
+              <th>Statut</th>
+              <th>Valeur</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="stockTable"></tbody>
+        </table>
+      </div>
 
       <!-- Historique mouvements -->
       <h3 style="margin-bottom:12px">📋 Historique des mouvements</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Produit</th>
-            <th>Variant</th>
-            <th>Type</th>
-            <th>Quantité</th>
-            <th>Stock après</th>
-            <th>Motif</th>
-          </tr>
-        </thead>
-        <tbody id="movementsTable"></tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Produit</th>
+              <th>Variant</th>
+              <th>Type</th>
+              <th>Quantité</th>
+              <th>Stock après</th>
+              <th>Motif</th>
+            </tr>
+          </thead>
+          <tbody id="movementsTable"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Tab: Produits -->
     <div class="tab-content" id="tab-products">
-      <table>
-        <thead>
-          <tr>
-            <th>Produit</th>
-            <th>Catégorie</th>
-            <th>Prix min</th>
-            <th>Variants</th>
-            <th>Note</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="productsTable"></tbody>
-      </table>
+      <div class="toolbar">
+        <input type="text" id="searchProducts" placeholder="🔍 Rechercher un produit...">
+        <button id="addProduct">➕ Nouveau produit</button>
+      </div>
+
+      <div class="loading" id="productsLoading">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Catégorie</th>
+              <th>Prix min</th>
+              <th>Variants</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTable"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Tab: Avis -->
     <div class="tab-content" id="tab-reviews">
-      <table>
-        <thead>
-          <tr>
-            <th>Produit</th>
-            <th>Client</th>
-            <th>Note</th>
-            <th>Commentaire</th>
-            <th>Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="reviewsTable"></tbody>
-      </table>
+      <div class="toolbar">
+        <select id="filterReviews">
+          <option value="all">Tous les avis</option>
+          <option value="approved">Approuvés</option>
+          <option value="pending">En attente</option>
+        </select>
+        <button id="refreshReviews">🔄 Actualiser</button>
+      </div>
+
+      <div class="loading" id="reviewsLoading">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Client</th>
+              <th>Note</th>
+              <th>Commentaire</th>
+              <th>Date</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reviewsTable"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Tab: Paramètres -->
     <div class="tab-content" id="tab-settings">
-      <div style="background:var(--card);padding:30px;border-radius:12px;border:1px solid var(--border)">
-        <h3 style="margin-bottom:20px">Paramètres généraux</h3>
-        <div style="margin-bottom:20px">
-          <label style="display:block;margin-bottom:8px;color:var(--muted)">Nom de la boutique</label>
-          <input value="DROGUA CENTER" style="width:100%;margin-bottom:0">
+      <div style="max-width:600px;margin:0 auto">
+        <div style="background:var(--card);padding:30px;border-radius:12px;border:1px solid var(--border)">
+          <h3 style="margin-bottom:20px">⚙️ Paramètres généraux</h3>
+          
+          <div class="form-group">
+            <label>Nom de la boutique</label>
+            <input id="settingShopName" value="DROGUA CENTER">
+          </div>
+          
+          <div class="form-group">
+            <label>Frais de livraison extérieure (€)</label>
+            <input id="settingDeliveryFee" type="number" value="20">
+          </div>
+          
+          <div class="form-group">
+            <label>Remise fidélité (tous les X achats)</label>
+            <input id="settingLoyalty" type="number" value="10">
+          </div>
+          
+          <button id="saveSettings" style="margin-bottom:10px">💾 Sauvegarder</button>
+          <button id="logoutBtn" style="background:var(--danger)">🚪 Se déconnecter</button>
         </div>
-        <div style="margin-bottom:20px">
-          <label style="display:block;margin-bottom:8px;color:var(--muted)">Frais de livraison extérieure</label>
-          <input value="20" type="number" style="width:100%;margin-bottom:0">
-        </div>
-        <div style="margin-bottom:20px">
-          <label style="display:block;margin-bottom:8px;color:var(--muted)">Remise fidélité (tous les X achats)</label>
-          <input value="10" type="number" style="width:100%;margin-bottom:0">
-        </div>
-        <button>Sauvegarder les paramètres</button>
-        <button style="background:var(--danger);margin-top:10px" id="logoutBtn">Se déconnecter</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Modal Order Details -->
+<div class="modal" id="modalOrder">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📦 Détails de la commande</h3>
+      <button class="modal-close" onclick="closeModal('modalOrder')">✕</button>
+    </div>
+    <div class="modal-body" id="orderDetails"></div>
+    <div class="modal-footer">
+      <button onclick="closeModal('modalOrder')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Product -->
+<div class="modal" id="modalEditProduct">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ Éditer le produit</h3>
+      <button class="modal-close" onclick="closeModal('modalEditProduct')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nom du produit</label>
+        <input id="editProductName" type="text">
+      </div>
+      <div class="form-group">
+        <label>Catégorie</label>
+        <input id="editProductCategory" type="text">
+      </div>
+      <div class="form-group">
+        <label>Fournisseur / Farm</label>
+        <input id="editProductFarm" type="text">
+      </div>
+      <div class="form-group">
+        <label>Statut</label>
+        <select id="editProductActive">
+          <option value="1">Actif</option>
+          <option value="0">Inactif</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Variants (JSON)</label>
+        <textarea id="editProductVariants" rows="6" placeholder='[{"label":"5G","price":30},{"label":"10G","price":60}]'></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeModal('modalEditProduct')" style="background:var(--muted)">Annuler</button>
+      <button id="saveProductBtn">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Order -->
+<div class="modal" id="modalEditOrder">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ Éditer la commande</h3>
+      <button class="modal-close" onclick="closeModal('modalEditOrder')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Client</label>
+        <input id="editOrderCustomer" type="text">
+      </div>
+      <div class="form-group">
+        <label>Type de livraison</label>
+        <select id="editOrderType">
+          <option value="Livraison sur Millau">Livraison sur Millau</option>
+          <option value="Livraison extérieure (+20€)">Livraison extérieure (+20€)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Adresse</label>
+        <textarea id="editOrderAddress" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Statut</label>
+        <select id="editOrderStatus">
+          <option value="pending">En attente</option>
+          <option value="processing">En traitement</option>
+          <option value="delivered">Livré</option>
+          <option value="cancelled">Annulé</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Total (€)</label>
+        <input id="editOrderTotal" type="number" step="0.01">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeModal('modalEditOrder')" style="background:var(--muted)">Annuler</button>
+      <button id="saveOrderBtn">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-const ADMIN_PASS = 'admin123'; // Mot de passe par défaut
+const API = '/api';
 const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
+const ADMIN_PASS = 'gangstaforlife12'; // ⚠️ CHANGEZ CE MOT DE PASSE
 
-// Login
-document.getElementById('login').onclick = () => {
-  const pass = document.getElementById('pass').value;
-  if (pass === ADMIN_PASS) {
-    document.getElementById('auth').style.display = 'none';
-    document.getElementById('dash').style.display = 'block';
-    loadDashboard();
-  } else {
-    alert('Mot de passe incorrect');
-  }
-};
-
-// Tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  };
-});
-
-// Logout
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-  document.getElementById('dash').style.display = 'none';
-  document.getElementById('auth').style.display = 'block';
-  document.getElementById('pass').value = '';
-});
-
-// Load Dashboard
-function loadDashboard() {
-  loadStats();
-  loadOrders();
-  loadStockData();
-  loadProducts();
-  loadReviews();
-}
-
-// === GESTION STOCK ===
-const PRODUCTS_DATA = [
+let TOKEN = 'local-admin-token';
+let USE_LOCAL_MODE = true; // Mode local sans backend (à mettre à false quand backend prêt)
+let PRODUCTS_DATA = [
   {id:1, name:'AMNESIA', variants:[{label:'3,33G',price:20},{label:'5G',price:30},{label:'10G',price:60},{label:'50G',price:250},{label:'100G',price:450}]},
   {id:2, name:'NEEDLES KETA', variants:[{label:'1G',price:20},{label:'2G',price:40},{label:'3G',price:50},{label:'5G',price:80},{label:'10G',price:150}]},
   {id:3, name:'CHAMPAGNE', variants:[{label:'1G',price:20},{label:'2G',price:40},{label:'3G',price:50},{label:'5G',price:80},{label:'10G',price:150}]},
@@ -321,132 +652,765 @@ const PRODUCTS_DATA = [
   {id:11, name:'FRESH FROZEN', variants:[{label:'1,1G',price:20},{label:'2,3G',price:40},{label:'3,5G',price:50},{label:'5G',price:80},{label:'10G',price:160}]}
 ];
 
-function getStock() {
-  try {
-    return JSON.parse(localStorage.getItem('stock_data') || '{}');
-  } catch {
-    return {};
+// === UTILITIES ===
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showLoading(id) {
+  document.getElementById(id)?.classList.add('active');
+}
+
+function hideLoading(id) {
+  document.getElementById(id)?.classList.remove('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('active');
+}
+
+async function apiCall(endpoint, options = {}) {
+  // Mode LOCAL : utilise localStorage
+  if (USE_LOCAL_MODE) {
+    return handleLocalStorage(endpoint, options);
   }
-}
-
-function saveStock(stock) {
-  localStorage.setItem('stock_data', JSON.stringify(stock));
-}
-
-function getMovements() {
-  try {
-    return JSON.parse(localStorage.getItem('stock_movements') || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveMovements(movements) {
-  localStorage.setItem('stock_movements', JSON.stringify(movements));
-}
-
-function getStockKey(productId, variant) {
-  return `${productId}_${variant}`;
-}
-
-function loadStockData() {
-  loadStockStats();
-  loadStockTable();
-  loadMovementsTable();
-  populateProductSelect();
-}
-
-function loadStockStats() {
-  const stock = getStock();
-  let totalValue = 0;
-  let outOfStock = 0;
-  let lowStock = 0;
-
-  for (const [key, qty] of Object.entries(stock)) {
-    const [productId, variant] = key.split('_');
-    const product = PRODUCTS_DATA.find(p => p.id === parseInt(productId));
-    if (product) {
-      const variantData = product.variants.find(v => v.label === variant);
-      if (variantData) {
-        totalValue += qty * variantData.price;
-        if (qty === 0) outOfStock++;
-        else if (qty < 10) lowStock++;
-      }
+  
+  // Mode API : appelle le backend
+  const headers = { 'Content-Type': 'application/json' };
+  if (TOKEN) headers['x-admin-token'] = TOKEN;
+  
+  const response = await fetch(API + endpoint, {
+    ...options,
+    headers: { ...headers, ...options.headers }
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      showToast('Session expirée', 'error');
+      logout();
+      throw new Error('Unauthorized');
     }
+    throw new Error('API Error');
   }
-
-  document.getElementById('stockValue').textContent = fmt(totalValue);
-  document.getElementById('stockOut').textContent = outOfStock;
-  document.getElementById('stockLow').textContent = lowStock;
+  
+  return response.json();
 }
 
-function loadStockTable() {
-  const stock = getStock();
-  const tbody = document.getElementById('stockTable');
-  const rows = [];
+// Gestion localStorage pour mode local
+function handleLocalStorage(endpoint, options) {
+  const method = options.method || 'GET';
+  
+  // Stats
+  if (endpoint === '/admin/stats') {
+    return getLocalStats();
+  }
+  
+  // Orders
+  if (endpoint.startsWith('/admin/orders')) {
+    if (method === 'GET') return getLocalOrders();
+    if (method === 'PUT') return updateLocalOrder(endpoint, options);
+    if (method === 'DELETE') return deleteLocalOrder(endpoint);
+  }
+  
+  // Stock
+  if (endpoint === '/admin/stock') return getLocalStock();
+  if (endpoint === '/admin/stock/movement') return addLocalStockMovement(options);
+  if (endpoint === '/admin/stock/movements') return getLocalMovements();
+  
+  // Reviews
+  if (endpoint === '/admin/reviews') {
+    if (method === 'GET') return getLocalReviews();
+    if (method === 'PUT') return updateLocalReview(endpoint, options);
+    if (method === 'DELETE') return deleteLocalReview(endpoint);
+  }
+  
+  // Settings
+  if (endpoint === '/admin/settings') {
+    if (method === 'GET') return getLocalSettings();
+    if (method === 'PUT') return saveLocalSettings(options);
+  }
+  
+  return { ok: true, data: [] };
+}
 
-  PRODUCTS_DATA.forEach(product => {
-    product.variants.forEach(variant => {
-      const key = getStockKey(product.id, variant.label);
-      const qty = stock[key] || 0;
-      let status = '<span class="badge success">OK</span>';
-      if (qty === 0) status = '<span class="badge" style="background:rgba(239,68,68,0.2);color:#ef4444">Rupture</span>';
-      else if (qty < 10) status = '<span class="badge warning">Stock bas</span>';
+// === LOCAL STORAGE HELPERS ===
 
-      rows.push(`
-        <tr>
-          <td><strong>${product.name}</strong></td>
-          <td>${variant.label}</td>
-          <td><strong style="color:var(--accent)">${qty}</strong></td>
-          <td>${status}</td>
-          <td>${fmt(qty * variant.price)}</td>
-          <td class="actions">
-            <button class="btn-sm btn-primary" data-product="${product.id}" data-variant="${variant.label}">+ Rapide</button>
-          </td>
-        </tr>
-      `);
+function getLocalOrders() {
+  const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  orders.forEach(o => {
+    // Parser items seulement si c'est une string
+    if (typeof o.items === 'string') {
+      o.items = JSON.parse(o.items || '[]');
+    } else if (!o.items) {
+      o.items = [];
+    }
+  });
+  return { ok: true, orders };
+}
+
+function updateLocalOrder(endpoint, options) {
+  const id = parseInt(endpoint.split('/').pop());
+  const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  const orderIndex = orders.findIndex(o => o.id === id);
+  
+  if (orderIndex !== -1 && options.body) {
+    const data = JSON.parse(options.body);
+    
+    // Mettre à jour tous les champs
+    orders[orderIndex] = {
+      ...orders[orderIndex],
+      ...data
+    };
+    
+    // S'assurer que items est toujours un tableau
+    if (orders[orderIndex].items && typeof orders[orderIndex].items === 'string') {
+      orders[orderIndex].items = JSON.parse(orders[orderIndex].items);
+    }
+    
+    localStorage.setItem('admin_orders', JSON.stringify(orders));
+  }
+  return { ok: true };
+}
+
+function deleteLocalOrder(endpoint) {
+  const id = parseInt(endpoint.split('/').pop());
+  let orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  orders = orders.filter(o => o.id !== id);
+  localStorage.setItem('admin_orders', JSON.stringify(orders));
+  return { ok: true };
+}
+
+function getLocalStats() {
+  try {
+    const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+    const totalCA = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalOrders = orders.length;
+    const avgOrder = totalOrders > 0 ? totalCA / totalOrders : 0;
+    
+    // Produit le plus vendu
+    const itemCounts = {};
+    orders.forEach(o => {
+      try {
+        // Multi-niveau de parsing pour gérer tous les cas
+        let items = o.items;
+        
+        // Si c'est une string, parser
+        if (typeof items === 'string') {
+          items = JSON.parse(items);
+        }
+        
+        // Si ce n'est pas un tableau, le rendre vide
+        if (!Array.isArray(items)) {
+          items = [];
+        }
+        
+        // Maintenant on peut boucler en toute sécurité
+        items.forEach(it => {
+          if (it && it.name && it.qty) {
+            itemCounts[it.name] = (itemCounts[it.name] || 0) + it.qty;
+          }
+        });
+      } catch (e) {
+        console.warn('Error parsing items for order:', o.id, e);
+      }
+    });
+    const topProduct = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+    
+    // Stock
+    const stock = JSON.parse(localStorage.getItem('stock_data') || '{}');
+    let stockValue = 0, stockOut = 0, stockLow = 0;
+    
+    Object.entries(stock).forEach(([key, qty]) => {
+      const [productId, variant] = key.split('_');
+      const product = PRODUCTS_DATA.find(p => p.id === parseInt(productId));
+      if (product) {
+        const v = product.variants.find(v => v.label === variant);
+        if (v) {
+          stockValue += qty * v.price;
+          if (qty === 0) stockOut++;
+          else if (qty < 10) stockLow++;
+        }
+      }
+    });
+    
+    return {
+      ok: true,
+      stats: { totalCA, totalOrders, avgOrder, topProduct, stockValue, stockOut, stockLow }
+    };
+  } catch (e) {
+    console.error('Fatal error in getLocalStats:', e);
+    return {
+      ok: true,
+      stats: { totalCA: 0, totalOrders: 0, avgOrder: 0, topProduct: '-', stockValue: 0, stockOut: 0, stockLow: 0 }
+    };
+  }
+}
+
+function getLocalStock() {
+  const stockData = JSON.parse(localStorage.getItem('stock_data') || '{}');
+  const stock = [];
+  
+  Object.entries(stockData).forEach(([key, qty]) => {
+    const [productId, variant] = key.split('_');
+    stock.push({
+      product_id: parseInt(productId),
+      variant,
+      qty
     });
   });
-
-  tbody.innerHTML = rows.join('');
   
-  // Attacher les événements après création du DOM
-  tbody.querySelectorAll('.btn-sm').forEach(btn => {
-    btn.onclick = () => {
-      const productId = btn.dataset.product;
-      const variant = btn.dataset.variant;
-      quickAddStock(productId, variant);
-    };
-  });
+  return { ok: true, stock };
 }
 
-function loadMovementsTable() {
-  const movements = getMovements();
-  const tbody = document.getElementById('movementsTable');
+function addLocalStockMovement(options) {
+  const data = JSON.parse(options.body);
+  const { product_id, variant, type, quantity, reason } = data;
+  
+  const stock = JSON.parse(localStorage.getItem('stock_data') || '{}');
+  const key = `${product_id}_${variant}`;
+  const currentQty = stock[key] || 0;
+  
+  let newQty = currentQty;
+  if (type === 'in') newQty = currentQty + quantity;
+  else newQty = Math.max(0, currentQty - quantity);
+  
+  stock[key] = newQty;
+  localStorage.setItem('stock_data', JSON.stringify(stock));
+  
+  const movements = JSON.parse(localStorage.getItem('stock_movements') || '[]');
+  movements.unshift({
+    product_id,
+    variant,
+    type,
+    quantity,
+    stock_after: newQty,
+    reason: reason || '',
+    created_at: new Date().toISOString()
+  });
+  localStorage.setItem('stock_movements', JSON.stringify(movements));
+  
+  return { ok: true, newQty };
+}
 
-  if (movements.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun mouvement pour le moment</td></tr>';
+function getLocalMovements() {
+  const movements = JSON.parse(localStorage.getItem('stock_movements') || '[]');
+  return { ok: true, movements };
+}
+
+function getLocalReviews() {
+  const reviewsObj = JSON.parse(localStorage.getItem('product_reviews') || '{}');
+  const reviews = [];
+  
+  Object.entries(reviewsObj).forEach(([productId, revList]) => {
+    revList.forEach((r, idx) => {
+      reviews.push({
+        id: `${productId}_${idx}`,
+        product_id: parseInt(productId),
+        name: r.name,
+        stars: r.stars,
+        text: r.text,
+        approved: 1,
+        created_at: new Date(r.date).toISOString()
+      });
+    });
+  });
+  
+  return { ok: true, reviews };
+}
+
+function updateLocalReview(endpoint, options) {
+  // Pour simplifier, on ne fait rien en local
+  return { ok: true };
+}
+
+function deleteLocalReview(endpoint) {
+  const id = endpoint.split('/').pop();
+  const [productId, idx] = id.split('_');
+  
+  const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
+  if (reviews[productId]) {
+    reviews[productId].splice(parseInt(idx), 1);
+    localStorage.setItem('product_reviews', JSON.stringify(reviews));
+  }
+  
+  return { ok: true };
+}
+
+function getLocalSettings() {
+  return {
+    ok: true,
+    settings: {
+      shop_name: 'DROGUA CENTER',
+      delivery_fee: '20',
+      loyalty_threshold: '10'
+    }
+  };
+}
+
+function saveLocalSettings(options) {
+  // En mode local, on ne sauvegarde pas vraiment
+  return { ok: true };
+}
+
+// === LOGIN ===
+document.getElementById('login').onclick = async () => {
+  const pass = document.getElementById('pass').value;
+  
+  // Vérification du mot de passe
+  if (pass !== ADMIN_PASS) {
+    showToast('Mot de passe incorrect', 'error');
     return;
   }
-
-  tbody.innerHTML = movements.slice(0, 50).map(m => {
-    const product = PRODUCTS_DATA.find(p => p.id === m.productId);
-    const typeLabel = m.type === 'in' 
-      ? '<span class="badge success">➕ Entrée</span>' 
-      : '<span class="badge" style="background:rgba(239,68,68,0.2);color:#ef4444">➖ Sortie</span>';
+  
+  // MODE LOCAL : connexion immédiate
+  if (USE_LOCAL_MODE) {
+    TOKEN = 'local-admin-token';
+    document.getElementById('auth').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    document.getElementById('modeIndicator').style.display = 'inline-block';
+    showToast('Connecté en mode local (données localStorage)', 'success');
+    loadDashboard();
+    return;
+  }
+  
+  // MODE API : appel au backend
+  try {
+    const response = await fetch(API + '/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass })
+    });
     
-    return `
-      <tr>
-        <td>${new Date(m.date).toLocaleString('fr-FR')}</td>
-        <td><strong>${product?.name || 'Inconnu'}</strong></td>
-        <td>${m.variant}</td>
-        <td>${typeLabel}</td>
-        <td><strong>${m.quantity}</strong></td>
-        <td>${m.stockAfter}</td>
-        <td class="muted">${m.reason || '-'}</td>
-      </tr>
+    const data = await response.json();
+    
+    if (data.ok && data.token) {
+      TOKEN = data.token;
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('dash').style.display = 'block';
+      showToast('Connecté en mode API', 'success');
+      loadDashboard();
+    } else {
+      showToast('Erreur de connexion', 'error');
+    }
+  } catch (e) {
+    showToast('Erreur serveur - Activez USE_LOCAL_MODE', 'error');
+    console.error('Login error:', e);
+  }
+};
+
+function logout() {
+  TOKEN = null;
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('auth').style.display = 'block';
+  document.getElementById('pass').value = '';
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+// === TABS ===
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    
+    // Load data for tab
+    const tab = btn.dataset.tab;
+    if (tab === 'orders') loadOrders();
+    else if (tab === 'finances') loadFinances();
+    else if (tab === 'stock') loadStockData();
+    else if (tab === 'products') loadProducts();
+    else if (tab === 'reviews') loadReviews();
+    else if (tab === 'settings') loadSettings();
+  };
+});
+
+// === DASHBOARD ===
+async function loadDashboard() {
+  loadStats();
+  loadOrders();
+  loadStockData();
+}
+
+async function loadStats() {
+  try {
+    const data = await apiCall('/admin/stats');
+    if (data.ok) {
+      const s = data.stats;
+      document.getElementById('totalCA').textContent = fmt(s.totalCA);
+      document.getElementById('totalOrders').textContent = s.totalOrders;
+      document.getElementById('avgOrder').textContent = fmt(s.avgOrder);
+      document.getElementById('topProduct').textContent = s.topProduct;
+      document.getElementById('stockValue').textContent = fmt(s.stockValue);
+      document.getElementById('stockAlerts').textContent = s.stockOut + s.stockLow;
+    }
+  } catch (e) {
+    console.error('Error loading stats:', e);
+  }
+}
+
+// === ORDERS ===
+async function loadOrders() {
+  showLoading('ordersLoading');
+  try {
+    const status = document.getElementById('filterStatus').value;
+    const data = await apiCall(`/admin/orders?status=${status}`);
+    
+    const tbody = document.getElementById('ordersTable');
+    if (!data.ok || data.orders.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Aucune commande</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.orders.map(o => {
+      const statusBadge = {
+        pending: '<span class="badge warning">En attente</span>',
+        processing: '<span class="badge info">En traitement</span>',
+        delivered: '<span class="badge success">Livré</span>',
+        cancelled: '<span class="badge danger">Annulé</span>'
+      }[o.status] || '<span class="badge">Inconnu</span>';
+      
+      return `
+        <tr>
+          <td><strong>#${o.id}</strong></td>
+          <td>${new Date(o.created_at).toLocaleDateString('fr-FR')}</td>
+          <td>${o.customer}</td>
+          <td><span class="badge">${o.type}</span></td>
+          <td>${o.items.length} article(s)</td>
+          <td><strong style="color:var(--accent)">${fmt(o.total)}</strong></td>
+          <td>${statusBadge}</td>
+          <td class="actions">
+            <button class="btn-sm btn-primary" onclick="viewOrder(${o.id})" title="Voir les détails">👁️</button>
+            <button class="btn-sm btn-primary" onclick="editOrder(${o.id})" title="Éditer">✏️</button>
+            <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})" title="Supprimer">🗑️</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error loading orders:', e);
+    showToast('Erreur de chargement', 'error');
+  } finally {
+    hideLoading('ordersLoading');
+  }
+}
+
+async function viewOrder(id) {
+  try {
+    const data = await apiCall(`/admin/orders?limit=1000`);
+    const order = data.orders.find(o => o.id === id);
+    if (!order) return;
+    
+    const details = document.getElementById('orderDetails');
+    details.innerHTML = `
+      <div style="margin-bottom:16px">
+        <strong>Commande #${order.id}</strong><br>
+        <span class="muted">Date: ${new Date(order.created_at).toLocaleString('fr-FR')}</span>
+      </div>
+      <div style="margin-bottom:16px">
+        <strong>Client:</strong> ${order.customer}<br>
+        <strong>Type:</strong> ${order.type}<br>
+        <strong>Adresse:</strong> ${order.address || '-'}
+      </div>
+      <div style="margin-bottom:16px">
+        <strong>Articles:</strong>
+        <ul style="list-style:none;padding:0;margin-top:8px">
+          ${order.items.map(it => `<li style="padding:6px;background:var(--bg);border-radius:6px;margin-bottom:4px">
+            ${it.name} - ${it.variant} - ${it.qty} × ${fmt(it.price)} = <strong>${fmt(it.lineTotal)}</strong>
+          </li>`).join('')}
+        </ul>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border)">
+        <strong>Remise fidélité:</strong> ${fmt(order.discount || 0)}<br>
+        <strong style="font-size:18px;color:var(--accent)">Total: ${fmt(order.total)}</strong>
+      </div>
     `;
-  }).join('');
+    document.getElementById('modalOrder').classList.add('active');
+  } catch (e) {
+    console.error('Error viewing order:', e);
+  }
+}
+
+// Nouvelle fonction pour éditer une commande
+async function editOrder(id) {
+  try {
+    const data = await apiCall(`/admin/orders?limit=1000`);
+    const order = data.orders.find(o => o.id === id);
+    if (!order) return;
+    
+    // Remplir le formulaire
+    document.getElementById('editOrderCustomer').value = order.customer;
+    document.getElementById('editOrderType').value = order.type;
+    document.getElementById('editOrderAddress').value = order.address || '';
+    document.getElementById('editOrderStatus').value = order.status || 'pending';
+    document.getElementById('editOrderTotal').value = order.total;
+    
+    // Stocker l'ID pour la sauvegarde
+    document.getElementById('saveOrderBtn').dataset.orderId = id;
+    
+    // Ouvrir le modal
+    document.getElementById('modalEditOrder').classList.add('active');
+  } catch (e) {
+    console.error('Error editing order:', e);
+    showToast('Erreur de chargement', 'error');
+  }
+}
+
+// Sauvegarder les modifications de commande
+document.getElementById('saveOrderBtn')?.addEventListener('click', async () => {
+  const id = document.getElementById('saveOrderBtn').dataset.orderId;
+  if (!id) return;
+  
+  try {
+    const updates = {
+      customer: document.getElementById('editOrderCustomer').value,
+      type: document.getElementById('editOrderType').value,
+      address: document.getElementById('editOrderAddress').value,
+      status: document.getElementById('editOrderStatus').value,
+      total: parseFloat(document.getElementById('editOrderTotal').value)
+    };
+    
+    await apiCall(`/admin/orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
+    
+    showToast('Commande mise à jour');
+    closeModal('modalEditOrder');
+    loadOrders();
+  } catch (e) {
+    showToast('Erreur de sauvegarde', 'error');
+  }
+});
+
+async function updateOrderStatus(id, status) {
+  if (!status) return;
+  try {
+    await apiCall(`/admin/orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+    showToast('Statut mis à jour');
+    loadOrders();
+  } catch (e) {
+    showToast('Erreur de mise à jour', 'error');
+  }
+}
+
+async function deleteOrder(id) {
+  if (!confirm('Supprimer cette commande ?')) return;
+  try {
+    await apiCall(`/admin/orders/${id}`, { method: 'DELETE' });
+    showToast('Commande supprimée');
+    loadOrders();
+    loadStats();
+  } catch (e) {
+    showToast('Erreur de suppression', 'error');
+  }
+}
+
+document.getElementById('refreshOrders')?.addEventListener('click', loadOrders);
+document.getElementById('filterStatus')?.addEventListener('change', loadOrders);
+
+document.getElementById('exportOrders')?.addEventListener('click', async () => {
+  try {
+    if (USE_LOCAL_MODE) {
+      // Export CSV en mode local
+      const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+      let csv = 'ID,Date,Client,Type,Adresse,Total,Remise,Statut\n';
+      orders.forEach(o => {
+        const date = new Date(o.created_at || Date.now()).toLocaleString('fr-FR');
+        csv += `${o.id},"${date}","${o.customer}","${o.type}","${o.address || ''}",${o.total},${o.discount || 0},"${o.status || 'pending'}"\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders_${Date.now()}.csv`;
+      a.click();
+      showToast('Export réussi');
+      return;
+    }
+    
+    // Export CSV via API
+    const response = await fetch(`${API}/admin/orders/export/csv`, {
+      headers: { 'x-admin-token': TOKEN }
+    });
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders_${Date.now()}.csv`;
+    a.click();
+    showToast('Export réussi');
+  } catch (e) {
+    showToast('Erreur d\'export', 'error');
+  }
+});
+
+// === INITIALIZATION ===
+// Fonction de migration pour corriger les anciennes données
+function migrateOldData() {
+  try {
+    // Corriger les commandes
+    const ordersRaw = localStorage.getItem('admin_orders');
+    if (ordersRaw) {
+      const orders = JSON.parse(ordersRaw);
+      const fixedOrders = orders.map(o => {
+        // Convertir items en tableau si c'est une string
+        if (typeof o.items === 'string') {
+          try {
+            o.items = JSON.parse(o.items);
+          } catch {
+            o.items = [];
+          }
+        } else if (!Array.isArray(o.items)) {
+          o.items = [];
+        }
+        return o;
+      });
+      localStorage.setItem('admin_orders', JSON.stringify(fixedOrders));
+    }
+  } catch (e) {
+    console.error('Migration error:', e);
+  }
+}
+
+// Initialiser des données de démo si localStorage est vide
+function initDemoData() {
+  // Migrer les anciennes données d'abord
+  migrateOldData();
+  
+  if (!localStorage.getItem('admin_orders') || JSON.parse(localStorage.getItem('admin_orders')).length === 0) {
+    const demoOrders = [
+      {
+        id: 1,
+        customer: 'Client 1',
+        type: 'Livraison sur Millau',
+        address: '12 rue Example, Millau',
+        items: [{"name":"AMNESIA","variant":"5G","qty":1,"price":30,"lineTotal":30}],
+        total: 30,
+        discount: 0,
+        status: 'delivered',
+        created_at: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: 2,
+        customer: 'Client 2',
+        type: 'Livraison extérieure (+20€)',
+        address: 'Paris',
+        items: [{"name":"NEEDLES KETA","variant":"2G","qty":2,"price":40,"lineTotal":80}],
+        total: 100,
+        discount: 0,
+        status: 'processing',
+        created_at: new Date(Date.now() - 172800000).toISOString()
+      },
+      {
+        id: 3,
+        customer: 'Client 3',
+        type: 'Livraison sur Millau',
+        address: 'Millau Centre',
+        items: [{"name":"EL JEFE","variant":"1G","qty":1,"price":50,"lineTotal":50}],
+        total: 50,
+        discount: 0,
+        status: 'pending',
+        created_at: new Date(Date.now() - 259200000).toISOString()
+      }
+    ];
+    localStorage.setItem('admin_orders', JSON.stringify(demoOrders));
+  }
+  
+  if (!localStorage.getItem('stock_data')) {
+    const initialStock = {};
+    PRODUCTS_DATA.forEach(product => {
+      product.variants.forEach(variant => {
+        const key = `${product.id}_${variant.label}`;
+        initialStock[key] = Math.floor(Math.random() * 50) + 10;
+      });
+    });
+    localStorage.setItem('stock_data', JSON.stringify(initialStock));
+  }
+  
+  if (!localStorage.getItem('stock_movements')) {
+    const demoMovements = [
+      {product_id:1, variant:'5G', type:'in', quantity:50, stock_after:65, reason:'Réapprovisionnement', created_at:new Date(Date.now() - 86400000).toISOString()},
+      {product_id:1, variant:'5G', type:'out', quantity:5, stock_after:15, reason:'Commande client', created_at:new Date(Date.now() - 172800000).toISOString()},
+      {product_id:2, variant:'2G', type:'in', quantity:30, stock_after:45, reason:'Nouvel arrivage', created_at:new Date(Date.now() - 259200000).toISOString()}
+    ];
+    localStorage.setItem('stock_movements', JSON.stringify(demoMovements));
+  }
+  
+  // Initialiser données financières de démo
+  if (!localStorage.getItem('finance_transactions')) {
+    const now = new Date();
+    const demoTransactions = [
+      {
+        type: 'revenue',
+        category: 'vente',
+        description: 'Commande #1 - AMNESIA 5G',
+        amount: 30,
+        date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        created_at: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'revenue',
+        category: 'vente',
+        description: 'Commande #2 - NEEDLES KETA 2G x2',
+        amount: 100,
+        date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        created_at: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'expense',
+        category: 'achat_stock',
+        description: 'Réapprovisionnement AMNESIA 100G',
+        amount: 450,
+        date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        created_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'expense',
+        category: 'livraison',
+        description: 'Frais de livraison - Lot du 15/12',
+        amount: 50,
+        date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        created_at: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'expense',
+        category: 'publicite',
+        description: 'Publicité Telegram - Décembre',
+        amount: 100,
+        date: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        created_at: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'revenue',
+        category: 'vente',
+        description: 'Commande #3 - EL JEFE 1G',
+        amount: 50,
+        date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        created_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+    localStorage.setItem('finance_transactions', JSON.stringify(demoTransactions));
+  }
+}
+
+// Initialiser au chargement de la page
+initDemoData();
+
+// === STOCK ===
+async function loadStockData() {
+  populateProductSelect();
+  await loadStock();
+  await loadMovements();
+  loadStats();
 }
 
 function populateProductSelect() {
@@ -470,35 +1434,90 @@ function populateProductSelect() {
   };
 }
 
-function addStockMovement(productId, variant, type, quantity, reason = '') {
-  const stock = getStock();
-  const movements = getMovements();
-  const key = getStockKey(productId, variant);
-  
-  const currentStock = stock[key] || 0;
-  let newStock;
-  
-  if (type === 'in') {
-    newStock = currentStock + quantity;
-  } else {
-    newStock = Math.max(0, currentStock - quantity);
+async function loadStock() {
+  showLoading('stockLoading');
+  try {
+    const data = await apiCall('/admin/stock');
+    const tbody = document.getElementById('stockTable');
+    
+    if (!data.ok || data.stock.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun stock</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.stock.map(s => {
+      const product = PRODUCTS_DATA.find(p => p.id === s.product_id);
+      const variant = product?.variants.find(v => v.label === s.variant);
+      const value = variant ? s.qty * variant.price : 0;
+      
+      let statusBadge = '<span class="badge success">OK</span>';
+      if (s.qty === 0) statusBadge = '<span class="badge danger">Rupture</span>';
+      else if (s.qty < 10) statusBadge = '<span class="badge warning">Stock bas</span>';
+      
+      return `
+        <tr>
+          <td><strong>${product?.name || 'Inconnu'}</strong></td>
+          <td>${s.variant}</td>
+          <td><strong style="color:var(--accent)">${s.qty}</strong></td>
+          <td>${statusBadge}</td>
+          <td>${fmt(value)}</td>
+          <td class="actions">
+            <button class="btn-sm btn-primary" onclick="quickAddStock(${s.product_id}, '${s.variant}')">+ Rapide</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error loading stock:', e);
+  } finally {
+    hideLoading('stockLoading');
   }
-  
-  stock[key] = newStock;
-  saveStock(stock);
-  
-  movements.unshift({
-    date: Date.now(),
-    productId,
-    variant,
-    type,
-    quantity,
-    stockAfter: newStock,
-    reason
-  });
-  saveMovements(movements);
-  
-  loadStockData();
+}
+
+async function loadMovements() {
+  try {
+    const data = await apiCall('/admin/stock/movements');
+    const tbody = document.getElementById('movementsTable');
+    
+    if (!data.ok || data.movements.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun mouvement</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.movements.map(m => {
+      const product = PRODUCTS_DATA.find(p => p.id === m.product_id);
+      const typeBadge = m.type === 'in' 
+        ? '<span class="badge success">➕ Entrée</span>' 
+        : '<span class="badge danger">➖ Sortie</span>';
+      
+      return `
+        <tr>
+          <td>${new Date(m.created_at).toLocaleString('fr-FR')}</td>
+          <td><strong>${product?.name || 'Inconnu'}</strong></td>
+          <td>${m.variant}</td>
+          <td>${typeBadge}</td>
+          <td><strong>${m.quantity}</strong></td>
+          <td>${m.stock_after}</td>
+          <td class="muted">${m.reason || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error loading movements:', e);
+  }
+}
+
+async function addStockMovement(productId, variant, type, quantity, reason = '') {
+  try {
+    await apiCall('/admin/stock/movement', {
+      method: 'POST',
+      body: JSON.stringify({ product_id: productId, variant, type, quantity, reason })
+    });
+    showToast('Stock mis à jour');
+    loadStockData();
+  } catch (e) {
+    showToast('Erreur de mise à jour', 'error');
+  }
 }
 
 document.getElementById('addStockMovement')?.addEventListener('click', () => {
@@ -509,193 +1528,507 @@ document.getElementById('addStockMovement')?.addEventListener('click', () => {
   const reason = document.getElementById('stockReason').value;
   
   if (!productId || !variant || !quantity) {
-    alert('Veuillez remplir tous les champs obligatoires');
+    showToast('Veuillez remplir tous les champs', 'error');
     return;
   }
   
   addStockMovement(productId, variant, type, quantity, reason);
   
-  // Reset form
   document.getElementById('stockProduct').value = '';
   document.getElementById('stockVariant').innerHTML = '<option value="">Sélectionner...</option>';
   document.getElementById('stockVariant').disabled = true;
   document.getElementById('stockQty').value = '1';
   document.getElementById('stockReason').value = '';
-  
-  alert(`Mouvement de stock ajouté avec succès !`);
 });
 
 function quickAddStock(productId, variant) {
   const qty = prompt('Quantité à ajouter :', '10');
   if (qty && !isNaN(qty) && parseInt(qty) > 0) {
-    addStockMovement(parseInt(productId), variant, 'in', parseInt(qty), 'Ajout rapide');
-    alert('Stock mis à jour !');
+    addStockMovement(productId, variant, 'in', parseInt(qty), 'Ajout rapide');
   }
 }
 
-function loadStats() {
-  // Simuler des statistiques (à remplacer par vraies données)
-  const orders = getStoredOrders();
-  const total = orders.reduce((sum, o) => sum + o.total, 0);
-  const avg = orders.length > 0 ? total / orders.length : 0;
-  
-  document.getElementById('totalCA').textContent = fmt(total);
-  document.getElementById('totalOrders').textContent = orders.length;
-  document.getElementById('avgOrder').textContent = fmt(avg);
-  document.getElementById('topProduct').textContent = 'AMNESIA';
-}
-
-function loadOrders() {
-  const orders = getStoredOrders();
-  const tbody = document.getElementById('ordersTable');
-  
-  if (orders.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucune commande pour le moment</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = orders.map((o, i) => `
-    <tr>
-      <td><strong>#${i + 1}</strong></td>
-      <td>${new Date(o.date).toLocaleDateString('fr-FR')}</td>
-      <td>${o.customer}</td>
-      <td>${o.items} article(s)</td>
-      <td><strong style="color:var(--accent)">${fmt(o.total)}</strong></td>
-      <td class="actions">
-        <button class="btn-sm btn-primary">Détails</button>
-        <button class="btn-sm btn-danger" onclick="deleteOrder(${i})">Supprimer</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function loadProducts() {
-  const products = [
-    {name:'AMNESIA',category:'weed',price:20,variants:5,rating:4.5},
-    {name:'NEEDLES KETA',category:'kéta',price:20,variants:5,rating:4.8},
-    {name:'CHAMPAGNE',category:'mdma',price:20,variants:5,rating:4.7},
-    {name:'EL JEFE',category:'blanche neige',price:30,variants:5,rating:4.9},
-    {name:'SKITTLEZ CAKE',category:'filtré',price:20,variants:4,rating:4.6},
-  ];
-  
-  const tbody = document.getElementById('productsTable');
-  tbody.innerHTML = products.map(p => `
-    <tr>
-      <td><strong>${p.name}</strong></td>
-      <td><span class="badge">${p.category}</span></td>
-      <td>${fmt(p.price)}</td>
-      <td>${p.variants} variants</td>
-      <td><span style="color:#facc15">⭐ ${p.rating}</span></td>
-      <td class="actions">
-        <button class="btn-sm btn-primary">Éditer</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function loadReviews() {
-  const reviews = getAllReviews();
-  const tbody = document.getElementById('reviewsTable');
-  
-  if (reviews.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun avis pour le moment</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = reviews.map((r, i) => `
-    <tr>
-      <td><strong>${r.productName}</strong></td>
-      <td>${r.name || 'Anonyme'}</td>
-      <td><span style="color:#facc15">${'⭐'.repeat(r.stars)}</span></td>
-      <td>${r.text.substring(0, 50)}${r.text.length > 50 ? '...' : ''}</td>
-      <td>${new Date(r.date).toLocaleDateString('fr-FR')}</td>
-      <td class="actions">
-        <button class="btn-sm btn-danger" onclick="deleteReview('${r.productId}', ${i})">Supprimer</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-// Storage helpers
-function getStoredOrders() {
+// === PRODUCTS ===
+async function loadProducts() {
+  showLoading('productsLoading');
   try {
-    return JSON.parse(localStorage.getItem('admin_orders') || '[]');
-  } catch {
-    return [];
+    const tbody = document.getElementById('productsTable');
+    tbody.innerHTML = PRODUCTS_DATA.map(p => `
+      <tr>
+        <td><strong>${p.name}</strong></td>
+        <td><span class="badge">-</span></td>
+        <td>${fmt(Math.min(...p.variants.map(v => v.price)))}</td>
+        <td>${p.variants.length} variants</td>
+        <td><span class="badge success">Actif</span></td>
+        <td class="actions">
+          <button class="btn-sm btn-primary" onclick="editProduct(${p.id})" title="Éditer">✏️</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error('Error loading products:', e);
+  } finally {
+    hideLoading('productsLoading');
   }
 }
 
-function getAllReviews() {
+// Éditer un produit
+function editProduct(id) {
+  const product = PRODUCTS_DATA.find(p => p.id === id);
+  if (!product) return;
+  
+  document.getElementById('editProductName').value = product.name;
+  document.getElementById('editProductCategory').value = product.category || '';
+  document.getElementById('editProductFarm').value = product.farm || '';
+  document.getElementById('editProductActive').value = '1';
+  document.getElementById('editProductVariants').value = JSON.stringify(product.variants, null, 2);
+  
+  document.getElementById('saveProductBtn').dataset.productId = id;
+  document.getElementById('modalEditProduct').classList.add('active');
+}
+
+// Sauvegarder les modifications de produit
+document.getElementById('saveProductBtn')?.addEventListener('click', () => {
+  const id = parseInt(document.getElementById('saveProductBtn').dataset.productId);
+  if (!id) return;
+  
   try {
-    const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
-    const products = {1:'AMNESIA',2:'NEEDLES KETA',3:'CHAMPAGNE',4:'EL JEFE',5:'SKITTLEZ CAKE',6:'PISTACCHIO',7:'DEMBELE',8:'LEMON X GELATO',9:'GEORGIA PIE',10:'DOMINO',11:'FRESH FROZEN'};
-    const all = [];
-    for (const [productId, revList] of Object.entries(reviews)) {
-      revList.forEach(r => {
-        all.push({...r, productId, productName: products[productId] || 'Produit'});
-      });
+    const product = PRODUCTS_DATA.find(p => p.id === id);
+    if (!product) return;
+    
+    // Mettre à jour le produit local
+    product.name = document.getElementById('editProductName').value;
+    product.category = document.getElementById('editProductCategory').value;
+    product.farm = document.getElementById('editProductFarm').value;
+    
+    // Parser les variants
+    const variantsText = document.getElementById('editProductVariants').value;
+    product.variants = JSON.parse(variantsText);
+    
+    showToast('Produit mis à jour');
+    closeModal('modalEditProduct');
+    loadProducts();
+  } catch (e) {
+    showToast('Erreur : Vérifiez le format JSON des variants', 'error');
+    console.error('Error saving product:', e);
+  }
+});
+
+// === REVIEWS ===
+async function loadReviews() {
+  showLoading('reviewsLoading');
+  try {
+    const data = await apiCall('/admin/reviews');
+    const tbody = document.getElementById('reviewsTable');
+    
+    if (!data.ok || data.reviews.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun avis</td></tr>';
+      return;
     }
-    return all.sort((a, b) => b.date - a.date);
-  } catch {
-    return [];
+    
+    tbody.innerHTML = data.reviews.map(r => {
+      const product = PRODUCTS_DATA.find(p => p.id === r.product_id);
+      const statusBadge = r.approved 
+        ? '<span class="badge success">Approuvé</span>' 
+        : '<span class="badge warning">En attente</span>';
+      
+      return `
+        <tr>
+          <td><strong>${product?.name || 'Produit'}</strong></td>
+          <td>${r.name || 'Anonyme'}</td>
+          <td>${'⭐'.repeat(r.stars)}</td>
+          <td>${r.text.substring(0, 50)}${r.text.length > 50 ? '...' : ''}</td>
+          <td>${new Date(r.created_at).toLocaleDateString('fr-FR')}</td>
+          <td>${statusBadge}</td>
+          <td class="actions">
+            ${!r.approved ? `<button class="btn-sm btn-success" onclick="approveReview(${r.id})">✓</button>` : ''}
+            <button class="btn-sm btn-danger" onclick="deleteReview(${r.id})">🗑️</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error loading reviews:', e);
+  } finally {
+    hideLoading('reviewsLoading');
   }
 }
 
-function deleteOrder(index) {
-  if (confirm('Supprimer cette commande ?')) {
-    const orders = getStoredOrders();
-    orders.splice(index, 1);
-    localStorage.setItem('admin_orders', JSON.stringify(orders));
-    loadDashboard();
-  }
-}
-
-function deleteReview(productId, index) {
-  if (confirm('Supprimer cet avis ?')) {
-    try {
-      const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
-      if (reviews[productId]) {
-        reviews[productId].splice(index, 1);
-        localStorage.setItem('product_reviews', JSON.stringify(reviews));
-        loadReviews();
-      }
-    } catch(e) {
-      console.error('Error deleting review:', e);
-    }
-  }
-}
-
-// Simuler quelques commandes pour la démo
-if (!localStorage.getItem('admin_orders')) {
-  const demoOrders = [
-    {date:Date.now()-86400000,customer:'Client 1',items:2,total:60,delivery:'Millau'},
-    {date:Date.now()-172800000,customer:'Client 2',items:1,total:30,delivery:'Millau'},
-    {date:Date.now()-259200000,customer:'Client 3',items:3,total:90,delivery:'Extérieur'},
-  ];
-  localStorage.setItem('admin_orders', JSON.stringify(demoOrders));
-}
-
-// Initialiser stock de base pour la démo
-if (!localStorage.getItem('stock_data')) {
-  const initialStock = {};
-  PRODUCTS_DATA.forEach(product => {
-    product.variants.forEach(variant => {
-      const key = getStockKey(product.id, variant.label);
-      initialStock[key] = Math.floor(Math.random() * 50) + 10; // Stock aléatoire entre 10 et 60
+async function approveReview(id) {
+  try {
+    await apiCall(`/admin/reviews/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ approved: 1 })
     });
-  });
-  localStorage.setItem('stock_data', JSON.stringify(initialStock));
+    showToast('Avis approuvé');
+    loadReviews();
+  } catch (e) {
+    showToast('Erreur', 'error');
+  }
 }
 
-// Initialiser quelques mouvements de démo
-if (!localStorage.getItem('stock_movements')) {
-  const demoMovements = [
-    {date:Date.now()-86400000,productId:1,variant:'5G',type:'in',quantity:50,stockAfter:65,reason:'Réapprovisionnement'},
-    {date:Date.now()-172800000,productId:1,variant:'5G',type:'out',quantity:5,stockAfter:15,reason:'Commande client'},
-    {date:Date.now()-259200000,productId:2,variant:'2G',type:'in',quantity:30,stockAfter:45,reason:'Nouvel arrivage'},
-  ];
-  localStorage.setItem('stock_movements', JSON.stringify(demoMovements));
+async function deleteReview(id) {
+  if (!confirm('Supprimer cet avis ?')) return;
+  try {
+    await apiCall(`/admin/reviews/${id}`, { method: 'DELETE' });
+    showToast('Avis supprimé');
+    loadReviews();
+  } catch (e) {
+    showToast('Erreur', 'error');
+  }
 }
+
+document.getElementById('refreshReviews')?.addEventListener('click', loadReviews);
+
+// === FINANCES ===
+
+function getTransactions() {
+  try {
+    return JSON.parse(localStorage.getItem('finance_transactions') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveTransactions(transactions) {
+  localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+}
+
+async function loadFinances() {
+  showLoading('financesLoading');
+  try {
+    loadFinanceStats();
+    loadTransactionsTable();
+    renderFinanceChart();
+    renderCategoryReport();
+  } catch (e) {
+    console.error('Error loading finances:', e);
+  } finally {
+    hideLoading('financesLoading');
+  }
+}
+
+function loadFinanceStats() {
+  const transactions = getTransactions();
+  
+  // Filtrer par type
+  const revenues = transactions.filter(t => t.type === 'revenue');
+  const expenses = transactions.filter(t => t.type === 'expense');
+  
+  const totalRevenue = revenues.reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+  const netProfit = totalRevenue - totalExpenses;
+  
+  // Balance du mois en cours
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthTransactions = transactions.filter(t => new Date(t.date) >= monthStart);
+  const monthRevenue = monthTransactions.filter(t => t.type === 'revenue').reduce((sum, t) => sum + t.amount, 0);
+  const monthExpenses = monthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const monthBalance = monthRevenue - monthExpenses;
+  
+  document.getElementById('totalRevenue').textContent = fmt(totalRevenue);
+  document.getElementById('totalExpenses').textContent = fmt(totalExpenses);
+  document.getElementById('netProfit').textContent = fmt(netProfit);
+  document.getElementById('netProfit').style.color = netProfit >= 0 ? 'var(--success)' : 'var(--danger)';
+  document.getElementById('monthBalance').textContent = fmt(monthBalance);
+  document.getElementById('monthBalance').style.color = monthBalance >= 0 ? 'var(--success)' : 'var(--danger)';
+}
+
+function loadTransactionsTable() {
+  let transactions = getTransactions();
+  
+  // Appliquer les filtres
+  const typeFilter = document.getElementById('filterTransactionType')?.value || 'all';
+  const categoryFilter = document.getElementById('filterTransactionCategory')?.value || 'all';
+  const periodFilter = document.getElementById('filterTransactionPeriod')?.value || 'all';
+  
+  if (typeFilter !== 'all') {
+    transactions = transactions.filter(t => t.type === typeFilter);
+  }
+  
+  if (categoryFilter !== 'all') {
+    transactions = transactions.filter(t => t.category === categoryFilter);
+  }
+  
+  // Filtre par période
+  if (periodFilter !== 'all') {
+    const now = new Date();
+    let startDate;
+    
+    if (periodFilter === 'today') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (periodFilter === 'week') {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (periodFilter === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (periodFilter === 'year') {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    }
+    
+    if (startDate) {
+      transactions = transactions.filter(t => new Date(t.date) >= startDate);
+    }
+  }
+  
+  const tbody = document.getElementById('transactionsTable');
+  
+  if (transactions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucune transaction</td></tr>';
+    return;
+  }
+  
+  // Trier par date décroissante
+  transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  tbody.innerHTML = transactions.map((t, idx) => {
+    const typeBadge = t.type === 'revenue' 
+      ? '<span class="badge success">💰 Revenu</span>'
+      : '<span class="badge danger">💸 Dépense</span>';
+    
+    const categoryLabels = {
+      vente: 'Vente',
+      achat_stock: 'Achat stock',
+      livraison: 'Livraison',
+      salaire: 'Salaire',
+      loyer: 'Loyer',
+      publicite: 'Publicité',
+      autre: 'Autre'
+    };
+    
+    const amountColor = t.type === 'revenue' ? 'var(--success)' : 'var(--danger)';
+    const amountSign = t.type === 'revenue' ? '+' : '-';
+    
+    return `
+      <tr>
+        <td>${new Date(t.date).toLocaleDateString('fr-FR')}</td>
+        <td>${typeBadge}</td>
+        <td><span class="badge">${categoryLabels[t.category] || t.category}</span></td>
+        <td>${t.description}</td>
+        <td><strong style="color:${amountColor}">${amountSign}${fmt(t.amount)}</strong></td>
+        <td class="actions">
+          <button class="btn-sm btn-danger" onclick="deleteTransaction(${idx})" title="Supprimer">🗑️</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function deleteTransaction(index) {
+  if (!confirm('Supprimer cette transaction ?')) return;
+  
+  const transactions = getTransactions();
+  transactions.splice(index, 1);
+  saveTransactions(transactions);
+  
+  showToast('Transaction supprimée');
+  loadFinances();
+}
+
+function renderFinanceChart() {
+  const transactions = getTransactions();
+  const chartDiv = document.getElementById('financeChart');
+  
+  // 30 derniers jours
+  const days = 30;
+  const now = new Date();
+  const dailyRevenue = {};
+  const dailyExpense = {};
+  
+  // Initialiser tous les jours
+  for (let i = 0; i < days; i++) {
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateKey = date.toISOString().split('T')[0];
+    dailyRevenue[dateKey] = 0;
+    dailyExpense[dateKey] = 0;
+  }
+  
+  // Remplir avec les transactions
+  transactions.forEach(t => {
+    const dateKey = t.date;
+    if (dateKey in dailyRevenue) {
+      if (t.type === 'revenue') {
+        dailyRevenue[dateKey] += t.amount;
+      } else {
+        dailyExpense[dateKey] += t.amount;
+      }
+    }
+  });
+  
+  // Trouver le max pour la hauteur
+  const maxValue = Math.max(
+    ...Object.values(dailyRevenue),
+    ...Object.values(dailyExpense),
+    1
+  );
+  
+  // Générer les barres (simplifié - derniers 7 jours seulement pour lisibilité)
+  const dates = Object.keys(dailyRevenue).sort().slice(-7);
+  
+  chartDiv.innerHTML = dates.map(date => {
+    const revenue = dailyRevenue[date];
+    const expense = dailyExpense[date];
+    const revenueHeight = (revenue / maxValue) * 150;
+    const expenseHeight = (expense / maxValue) * 150;
+    const dayLabel = new Date(date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+    
+    return `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="display:flex;gap:4px;align-items:flex-end;height:150px">
+          <div style="width:20px;background:var(--success);height:${revenueHeight}px;border-radius:4px 4px 0 0" title="Revenus: ${fmt(revenue)}"></div>
+          <div style="width:20px;background:var(--danger);height:${expenseHeight}px;border-radius:4px 4px 0 0" title="Dépenses: ${fmt(expense)}"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center">${dayLabel}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCategoryReport() {
+  const transactions = getTransactions();
+  const expenses = transactions.filter(t => t.type === 'expense');
+  
+  const categoryTotals = {};
+  expenses.forEach(t => {
+    categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+  });
+  
+  const reportDiv = document.getElementById('categoryReport');
+  
+  if (Object.keys(categoryTotals).length === 0) {
+    reportDiv.innerHTML = '<div style="color:var(--muted);text-align:center">Aucune dépense enregistrée</div>';
+    return;
+  }
+  
+  const total = Object.values(categoryTotals).reduce((sum, v) => sum + v, 0);
+  const categoryLabels = {
+    achat_stock: 'Achat stock',
+    livraison: 'Livraison',
+    salaire: 'Salaire',
+    loyer: 'Loyer',
+    publicite: 'Publicité',
+    autre: 'Autre'
+  };
+  
+  reportDiv.innerHTML = Object.entries(categoryTotals)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cat, amount]) => {
+      const percentage = (amount / total * 100).toFixed(1);
+      return `
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span><strong>${categoryLabels[cat] || cat}</strong></span>
+            <span style="color:var(--accent)">${fmt(amount)} (${percentage}%)</span>
+          </div>
+          <div style="background:var(--border);height:8px;border-radius:4px;overflow:hidden">
+            <div style="background:var(--accent);height:100%;width:${percentage}%;border-radius:4px"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+// Ajouter une transaction
+document.getElementById('addTransaction')?.addEventListener('click', () => {
+  const type = document.getElementById('transactionType').value;
+  const category = document.getElementById('transactionCategory').value;
+  const description = document.getElementById('transactionDescription').value.trim();
+  const amount = parseFloat(document.getElementById('transactionAmount').value);
+  const date = document.getElementById('transactionDate').value;
+  
+  if (!description || !amount || amount <= 0 || !date) {
+    showToast('Veuillez remplir tous les champs', 'error');
+    return;
+  }
+  
+  const transactions = getTransactions();
+  transactions.unshift({
+    type,
+    category,
+    description,
+    amount,
+    date,
+    created_at: new Date().toISOString()
+  });
+  
+  saveTransactions(transactions);
+  
+  // Reset form
+  document.getElementById('transactionDescription').value = '';
+  document.getElementById('transactionAmount').value = '';
+  document.getElementById('transactionDate').value = new Date().toISOString().split('T')[0];
+  
+  showToast('Transaction ajoutée');
+  loadFinances();
+  loadStats(); // Refresh dashboard stats
+});
+
+// Initialiser la date du jour
+document.getElementById('transactionDate').value = new Date().toISOString().split('T')[0];
+
+// Event listeners pour les filtres
+document.getElementById('filterTransactionType')?.addEventListener('change', loadTransactionsTable);
+document.getElementById('filterTransactionCategory')?.addEventListener('change', loadTransactionsTable);
+document.getElementById('filterTransactionPeriod')?.addEventListener('change', loadTransactionsTable);
+document.getElementById('refreshFinances')?.addEventListener('click', loadFinances);
+
+// Export CSV
+document.getElementById('exportFinances')?.addEventListener('click', () => {
+  const transactions = getTransactions();
+  
+  if (transactions.length === 0) {
+    showToast('Aucune transaction à exporter', 'error');
+    return;
+  }
+  
+  let csv = 'Date,Type,Catégorie,Description,Montant\n';
+  transactions.forEach(t => {
+    const typeLabel = t.type === 'revenue' ? 'Revenu' : 'Dépense';
+    csv += `"${t.date}","${typeLabel}","${t.category}","${t.description}",${t.amount}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `finances_${Date.now()}.csv`;
+  a.click();
+  
+  showToast('Export réussi');
+});
+
+// === SETTINGS ===
+async function loadSettings() {
+  try {
+    const data = await apiCall('/admin/settings');
+    if (data.ok) {
+      document.getElementById('settingShopName').value = data.settings.shop_name || 'DROGUA CENTER';
+      document.getElementById('settingDeliveryFee').value = data.settings.delivery_fee || '20';
+      document.getElementById('settingLoyalty').value = data.settings.loyalty_threshold || '10';
+    }
+  } catch (e) {
+    console.error('Error loading settings:', e);
+  }
+}
+
+document.getElementById('saveSettings')?.addEventListener('click', async () => {
+  try {
+    const settings = {
+      shop_name: document.getElementById('settingShopName').value,
+      delivery_fee: document.getElementById('settingDeliveryFee').value,
+      loyalty_threshold: document.getElementById('settingLoyalty').value
+    };
+    
+    await apiCall('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ settings })
+    });
+    
+    showToast('Paramètres sauvegardés');
+  } catch (e) {
+    showToast('Erreur de sauvegarde', 'error');
+  }
+});
 </script>
 </body>
 </html>
