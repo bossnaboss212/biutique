@@ -3,89 +3,1040 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>DROGUA CENTER</title> <!-- tu peux garder le titre pour Google -->
-  <link rel="stylesheet" href="style.css">
+  <title>DROGUA CENTER - Démo</title>
+  <style>
+:root{--bg:#0d1419;--card:#1e2936;--text:#e8edf2;--muted:#7a8594;--accent:#5ba3f5;--border:#2a3441;--success:#10b981;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1419;color:var(--text);overflow-x:hidden}
+body.modal-open{overflow:hidden;position:fixed;width:100%}
+
+/* Header avec menu + logo + panier */
+.top{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#1c2532;position:sticky;top:0;z-index:100}
+
+.menu-btn{background:transparent;border:none;padding:8px;cursor:pointer;z-index:1001;position:relative}
+.hamburger{display:flex;flex-direction:column;gap:5px;width:24px}
+.hamburger span{width:100%;height:2px;background:#7a8594;border-radius:2px;transition:all 0.3s}
+
+/* Menu latéral */
+.side-menu{position:fixed;top:0;left:0;width:280px;height:100%;background:#1e2936;transform:translateX(-100%);transition:transform 0.3s ease;z-index:1000;box-shadow:2px 0 12px rgba(0,0,0,0.5);display:flex;flex-direction:column}
+.side-menu.open{transform:translateX(0)}
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.menu-overlay.open{opacity:1;pointer-events:all}
+
+.menu-header{padding:20px;border-bottom:1px solid #2a3441;display:flex;align-items:center;justify-content:space-between}
+.menu-header h3{margin:0;font-size:20px}
+.menu-close{background:transparent;border:none;color:#fff;font-size:28px;cursor:pointer;padding:0;line-height:1}
+
+.menu-items{flex:1;padding:0;overflow-y:auto}
+.menu-item{display:flex;align-items:center;gap:14px;padding:16px 20px;color:#fff;font-size:16px;font-weight:500;cursor:pointer;transition:background 0.2s;border:none;background:transparent;width:100%;text-align:left}
+.menu-item:hover{background:#2a3441}
+.menu-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
+
+.logo{position:absolute;left:50%;transform:translateX(-50%)}
+.logo-circle{width:50px;height:50px;background:linear-gradient(135deg,#d946ef 0%,#c026d3 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;box-shadow:0 4px 12px rgba(217,70,239,0.4);animation:spin 3s linear infinite}
+
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+.cart-btn{background:transparent;border:none;padding:8px;cursor:pointer;display:flex;align-items:center;gap:6px;color:#fff}
+#badge{background:#5ba3f5;color:#fff;border-radius:50%;padding:2px 7px;font-size:11px;font-weight:700;min-width:20px;text-align:center}
+
+/* Hero section */
+.hero{background:#0d1419;padding:30px 20px 20px 20px}
+.hero h1{font-size:32px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px}
+.subtitle{color:#7a8594;font-size:16px}
+
+/* Filters */
+.filters-section{padding:20px;background:#0d1419}
+.filter-header{display:flex;align-items:center;gap:8px;color:#7a8594;font-size:14px;margin-bottom:12px}
+.filter-select{width:100%;padding:15px 16px;background:#2a3441;border:1px solid #3a4554;border-radius:10px;color:#fff;font-size:15px;margin-bottom:12px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8594' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+
+/* Products header */
+.products-header{padding:20px 20px 10px 20px;background:#0d1419}
+.products-header h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.results-count{color:#7a8594;font-size:14px}
+
+/* Grid */
+.page{display:none;background:#0d1419;padding-bottom:80px}
+.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:12px 20px 20px 20px}
+.card{background:#1e2936;border:1px solid #2a3441;border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.thumb{width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.meta{padding:10px 12px}
+.meta b{display:block;margin:4px 0;font-size:15px}
+.muted{color:#7a8594}
+.small{font-size:12px}
+
+/* Buttons */
+.primary{background:#5ba3f5;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;width:100%;font-size:14px;transition:all 0.2s}
+.primary:hover{background:#6baff7;transform:translateY(-1px)}
+
+/* Sheets */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.sheet:not(.hidden){opacity:1;pointer-events:all}
+.sheet-card{background:#1e2936;border:1px solid #2a3441;border-top-left-radius:20px;border-top-right-radius:20px;width:100%;max-height:85vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.3s}
+.sheet:not(.hidden) .sheet-card{transform:translateY(0)}
+
+.sheet-header{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #2a3441;flex-shrink:0}
+.sheet-header h2{font-size:18px}
+.sheet-header button{background:transparent;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:4px 8px}
+
+.sheet-content{flex:1;overflow-y:auto;padding:12px;padding-bottom:100px;-webkit-overflow-scrolling:touch}
+
+#lines .line{display:flex;align-items:center;gap:10px;border:1px solid #2a3441;border-radius:12px;padding:8px;margin:8px 0;background:#0d1419}
+#lines .line-thumb{width:50px;height:50px;border-radius:8px;background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);flex-shrink:0}
+#lines .line-info{flex:1;min-width:0}
+#lines .line-info b{display:block;margin-bottom:2px}
+#lines .line-price{font-weight:700;color:#5ba3f5;flex-shrink:0}
+
+.qty-controls{display:flex;align-items:center;gap:8px;margin-top:6px}
+.qty-btn{background:#2a3441;border:none;color:var(--text);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.qty-btn:hover{background:#3a4554}
+.qty-display{font-weight:600;min-width:30px;text-align:center}
+
+.total{display:flex;justify-content:space-between;padding:12px;background:#0d1419;border-radius:10px;margin:12px 0;font-size:18px}
+.total b{color:#5ba3f5}
+
+.delivery{margin:12px 0}
+.delivery h3{font-size:14px;margin-bottom:10px;font-weight:600}
+.delivery-option{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#2a3441;border:2px solid #3a4554;border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all 0.2s}
+.delivery-option:hover{background:#323d4d;border-color:#4a5564}
+.delivery-option.selected{background:rgba(91,163,245,0.15);border-color:#5ba3f5}
+.delivery-option .delivery-info{flex:1}
+.delivery-option .delivery-title{font-weight:600;margin-bottom:4px}
+.delivery-option .delivery-price{color:#7a8594;font-size:13px}
+.delivery-option .delivery-check{width:20px;height:20px;border:2px solid #3a4554;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.delivery-option.selected .delivery-check{border-color:#5ba3f5;background:#5ba3f5}
+.delivery-option.selected .delivery-check::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+
+.sheet-footer{padding:12px;border-top:1px solid #2a3441;background:#1e2936;flex-shrink:0}
+
+input,textarea,select{background:#2a3441;color:var(--text);border:1px solid #3a4554;border-radius:12px;padding:12px 14px;width:100%;font-size:14px;font-family:inherit}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#5ba3f5}
+
+.variant-option{display:flex;justify-content:space-between;align-items:center;padding:14px;border:2px solid #2a3441;border-radius:12px;margin-top:10px;background:#0d1419;cursor:pointer;transition:all 0.2s;position:relative}
+.variant-option:hover{background:#16191f;border-color:#3a4554}
+.variant-option.selected{border-color:#5ba3f5;background:rgba(91,163,245,0.1)}
+.variant-option.selected::after{content:'✓';position:absolute;top:8px;right:8px;background:#5ba3f5;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+
+.add-to-cart-bar{position:fixed;bottom:0;left:0;right:0;background:#1e2936;border-top:2px solid #2a3441;padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:1001;transform:translateY(100%);transition:transform 0.3s;box-shadow:0 -4px 12px rgba(0,0,0,0.3)}
+.add-to-cart-bar.show{transform:translateY(0)}
+.add-to-cart-bar .qty-selector{display:flex;align-items:center;gap:10px;background:#0d1419;padding:8px 12px;border-radius:10px;border:1px solid #2a3441}
+.add-to-cart-bar .qty-btn{width:32px;height:32px;font-size:18px}
+.add-to-cart-bar .qty-display{font-size:18px;min-width:40px}
+.add-to-cart-bar .add-btn{flex:1;padding:14px;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:#1e2936;border:1px solid #2a3441;padding:12px 20px;border-radius:12px;z-index:2000;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(0,0,0,0.3);opacity:0;transition:all 0.3s}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{border-left:4px solid #10b981}
+
+.info-card{display:flex;align-items:center;gap:16px;padding:18px 20px;background:#2a3441;border:1px solid #3a4554;border-radius:12px;margin-bottom:14px;color:#fff;font-weight:600;font-size:16px;transition:all 0.2s;cursor:pointer}
+.info-card:hover{background:#323d4d;transform:translateY(-1px)}
+
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#1a2332;border-top:1px solid #2a3441;display:flex;justify-content:space-around;padding:10px 0 8px 0;z-index:99}
+.tab{background:transparent;border:none;color:#7a8594;cursor:pointer;padding:4px 12px;text-align:center;flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s}
+.tab .icon{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab .label{font-size:12px;font-weight:500}
+.tab.active{color:#5ba3f5}
+
+@media (min-width:768px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .sheet-card{max-width:500px;margin:0 auto;border-radius:20px}
+  .sheet{align-items:center}
+}
+  </style>
 </head>
 <body>
 <div class="app">
+  <!-- Menu latéral -->
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="side-menu" id="sideMenu">
+    <div class="menu-header">
+      <h3>Menu</h3>
+      <button class="menu-close" id="menuClose">✕</button>
+    </div>
+    <div class="menu-items">
+      <button class="menu-item" data-page="home">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Accueil</span>
+      </button>
+      <button class="menu-item" data-page="infos">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Informations</span>
+      </button>
+      <button class="menu-item" data-page="avis">
+        <svg viewBox="0 0 24 24">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>Avis clients</span>
+      </button>
+      <button class="menu-item" data-page="support">
+        <svg viewBox="0 0 24 24">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        <span>Support</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
   <header class="top">
-    <h1>
-  <img src="img/logo.png" alt="Drogua Center" style="max-width:200px; height:auto;">
-</h1>
-    <button id="cartBtn" class="btn">🛒 <span id="badge">0</span></button>
+    <button class="menu-btn" id="menuBtn">
+      <div class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </button>
+    
+    <div class="logo">
+      <div class="logo-circle">Dc</div>
+    </div>
+    
+    <button class="cart-btn" id="cartBtn">
+      <svg style="width:22px;height:22px" viewBox="0 0 24 24">
+        <circle cx="9" cy="21" r="1" stroke="currentColor" fill="none" stroke-width="2"></circle>
+        <circle cx="20" cy="21" r="1" stroke="currentColor" fill="none" stroke-width="2"></circle>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <span id="badge">1</span>
+    </button>
   </header>
 
-  <!-- Filtres -->
-  <div id="filters" class="filters"></div>
-
-  <!-- Pages -->
+  <!-- Page Home -->
   <main id="page-home" class="page active">
-    <div id="grid" class="grid"></div>
+    <!-- Hero -->
+    <div class="hero">
+      <h1>DROGUA CENTER</h1>
+      <p class="subtitle">Boutique en ligne</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="filter-header">
+        <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" fill="none" stroke-width="2"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+        </svg>
+        <span>Nos Filtres</span>
+      </div>
+      
+      <select class="filter-select">
+        <option>Toutes les catégories</option>
+        <option>weed</option>
+        <option>🤯 filtré</option>
+        <option>🇺🇸 cali us</option>
+        <option>💊 bonbon</option>
+      </select>
+      
+      <select class="filter-select">
+        <option>Toutes nos Collections</option>
+        <option>Collection Premium</option>
+        <option>Collection Exclusive</option>
+      </select>
+    </div>
+
+    <!-- Products Header -->
+    <div class="products-header">
+      <h2>Articles disponibles</h2>
+      <p class="results-count">11 résultats</p>
+    </div>
+
+    <div class="grid" id="productGrid"></div>
   </main>
 
+  <!-- Page Infos -->
   <main id="page-infos" class="page">
-    <div class="card p">
-      <h2>Infos</h2>
-      <ul class="links">
-        <li><a target="_blank" href="https://t.me/+MToYP95G9zY2ZTJk">CANAL PRINCIPAL</a></li>
-        <li><a target="_blank" href="https://t.me/+usSUbJOfYsk5ZTg0">CANAL PHOTO</a></li>
-        <li><a target="_blank" href="https://snapchat.com/t/jR2yW7xa">Snapchat secours</a></li>
-      </ul>
-      <div class="muted small">Snapchat principal : <a target="_blank" href="https://snapchat.com/t/l9gurvAj">snapchat.com/t/l9gurvAj</a></div>
+    <div style="padding:20px;max-width:600px;margin:0 auto">
+      <h2 style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:30px">
+        <svg style="width:28px;height:28px;stroke:#5ba3f5;fill:none;stroke-width:2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        Informations
+      </h2>
+
+      <a href="https://t.me/+MToYP95G9zY2ZTJk" target="_blank" style="text-decoration:none">
+        <div class="info-card">
+          <svg style="width:24px;height:24px;stroke:#5ba3f5;fill:none;stroke-width:2" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span>Canal Principal</span>
+        </div>
+      </a>
+
+      <a href="https://t.me/+usSUbJOfYsk5ZTg0" target="_blank" style="text-decoration:none">
+        <div class="info-card">
+          <svg style="width:24px;height:24px;stroke:#5ba3f5;fill:none;stroke-width:2" viewBox="0 0 24 24">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span>Canal Photo</span>
+        </div>
+      </a>
+
+      <a href="https://snapchat.com/t/l9gurvAj" target="_blank" style="text-decoration:none">
+        <div class="info-card">
+          <svg style="width:24px;height:24px;stroke:#facc15;fill:none;stroke-width:2.5" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Snapchat</span>
+        </div>
+      </a>
+
+      <a href="https://snapchat.com/t/jR2yW7xa" target="_blank" style="text-decoration:none">
+        <div class="info-card">
+          <svg style="width:24px;height:24px;stroke:#facc15;fill:none;stroke-width:2.5" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Snapchat Secours 🆘</span>
+        </div>
+      </a>
     </div>
   </main>
 
+  <!-- Page Avis -->
   <main id="page-avis" class="page">
-    <div class="card p">
-      <h2>Avis ⭐</h2>
-      <div id="reviews"></div>
-      <div class="review-form">
-        <input id="revName" placeholder="Votre nom (optionnel)">
-        <textarea id="revText" placeholder="Votre avis..."></textarea>
-        <select id="revStars">
-          <option value="5">5 ⭐</option>
-          <option value="4">4 ⭐</option>
-          <option value="3">3 ⭐</option>
-          <option value="2">2 ⭐</option>
-          <option value="1">1 ⭐</option>
+    <div style="padding:20px">
+      <h2 style="text-align:center;margin-bottom:20px">Avis clients ⭐</h2>
+      <div id="reviewsList">
+        <div style="background:#1e2936;padding:16px;border-radius:12px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <b>Martin D.</b>
+            <span>⭐⭐⭐⭐⭐</span>
+          </div>
+          <p class="small muted">Il y a 2 jours</p>
+          <p style="margin-top:8px">Excellent service, produits de qualité et livraison rapide !</p>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <h3 style="font-size:16px;margin-bottom:12px">Laisser un avis</h3>
+        <input id="revName" placeholder="Votre nom (optionnel)" style="margin-bottom:10px">
+        <textarea id="revText" placeholder="Votre avis..." rows="4" style="margin-bottom:10px;resize:vertical"></textarea>
+        <select id="revStars" style="margin-bottom:10px">
+          <option value="5">5 ⭐⭐⭐⭐⭐</option>
+          <option value="4">4 ⭐⭐⭐⭐</option>
+          <option value="3">3 ⭐⭐⭐</option>
         </select>
-        <button id="revSubmit" class="primary">Publier</button>
+        <button id="revSubmit" class="primary">Publier mon avis</button>
       </div>
     </div>
   </main>
 
+  <!-- Page Support -->
   <main id="page-support" class="page">
-    <div class="card p">
-      <h2>Support</h2>
-      <p>Contact : <b>@assistancenter</b></p>
+    <div style="padding:20px;max-width:600px;margin:0 auto">
+      <h2 style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:30px">
+        <svg style="width:28px;height:28px;stroke:#5ba3f5;fill:none;stroke-width:2" viewBox="0 0 24 24">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        Support
+      </h2>
+
+      <a href="https://t.me/assistancenter" target="_blank" style="text-decoration:none">
+        <div class="info-card" style="justify-content:center">
+          <svg style="width:24px;height:24px;stroke:#5ba3f5;fill:none;stroke-width:2" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span>@assistancenter</span>
+        </div>
+      </a>
+
+      <div style="text-align:center;margin-top:30px;color:#7a8594;font-size:14px">
+        Disponible 7j/7 pour vous aider 🕐
+      </div>
     </div>
   </main>
 
-  <!-- Panier -->
+  <!-- Panier Sheet -->
   <section id="cartSheet" class="sheet hidden">
     <div class="sheet-card">
-      <div class="sheet-header"><h2>Panier</h2><button id="closeCart">✕</button></div>
-      <div id="lines"></div>
-      <div class="total">Total: <b id="total">0,00 €</b></div>
-      <div class="delivery">
-        <label><input type="radio" name="delivery" value="Livraison sur Millau" checked> Livraison sur Millau</label>
-        <label><input type="radio" name="delivery" value="Livraison extérieure (+20€)"> Livraison extérieure (+20€)</label>
+      <div class="sheet-header">
+        <h2>Mon panier 🛒</h2>
+        <button id="closeCart">✕</button>
       </div>
-      <input id="addr" placeholder="Adresse (auto-complétion)">
-      <div id="suggestions"></div>
-      <button id="checkout" class="primary fixed-btn">Valider</button>
+      <div class="sheet-content">
+        <div id="lines">
+          <div class="line">
+            <div class="line-thumb"></div>
+            <div class="line-info">
+              <b>AMNESIA</b>
+              <div class="muted small">5G - 30,00 €</div>
+              <div class="qty-controls">
+                <button class="qty-btn">−</button>
+                <span class="qty-display">1</span>
+                <button class="qty-btn">+</button>
+                <button class="qty-btn" style="margin-left:auto;background:#ef4444">🗑</button>
+              </div>
+            </div>
+            <div class="line-price">30,00 €</div>
+          </div>
+        </div>
+        <div class="total"><span>Total</span><b id="cartTotal">30,00 €</b></div>
+        <div class="delivery">
+          <h3>Mode de livraison</h3>
+          <div class="delivery-option selected" data-delivery="millau" data-price="0">
+            <div class="delivery-info">
+              <div class="delivery-title">📍 Livraison sur Millau</div>
+              <div class="delivery-price">Gratuit</div>
+            </div>
+            <div class="delivery-check"></div>
+          </div>
+          <div class="delivery-option" data-delivery="exterieur" data-price="20">
+            <div class="delivery-info">
+              <div class="delivery-title">🚚 Livraison extérieure</div>
+              <div class="delivery-price">+20,00 €</div>
+            </div>
+            <div class="delivery-check"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label style="display:block;margin-bottom:6px;font-weight:600">Adresse de livraison</label>
+          <input placeholder="Entrez votre adresse...">
+        </div>
+      </div>
+      <div class="sheet-footer">
+        <button class="primary">✓ Valider la commande</button>
+      </div>
     </div>
   </section>
 
-  <!-- Nav bas -->
+  <!-- Product Sheet -->
+  <section id="productSheet" class="sheet hidden">
+    <div class="sheet-card">
+      <div class="sheet-header">
+        <h2 id="productName">Produit</h2>
+        <button id="closeProduct">✕</button>
+      </div>
+      <div class="sheet-content" id="productContent"></div>
+    </div>
+    <div class="add-to-cart-bar" id="addToCartBar">
+      <div class="qty-selector">
+        <button class="qty-btn" id="decreaseQty">−</button>
+        <span class="qty-display" id="currentQty">1</span>
+        <button class="qty-btn" id="increaseQty">+</button>
+      </div>
+      <button class="primary add-btn" id="addToCartBtn">
+        <span>Ajouter</span>
+        <span id="cartBtnPrice">20,00 €</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Bottom Navigation -->
   <nav class="bottom">
-    <button data-tab="home" class="tab active">Accueil</button>
-    <button data-tab="infos" class="tab">Infos</button>
-    <button data-tab="avis" class="tab">Avis</button>
-    <button data-tab="support" class="tab">Support</button>
+    <button class="tab active" data-tab="home">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <div class="label">Accueil</div>
+    </button>
+    <button class="tab" data-tab="infos">
+      <svg class="icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <div class="label">Infos</div>
+    </button>
+    <button class="tab" id="cartTabBtn">
+      <div style="position:relative;display:inline-block">
+        <svg class="icon" viewBox="0 0 24 24">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span id="badgeBottom" style="position:absolute;top:-6px;right:-8px;background:#5ba3f5;color:#fff;border-radius:50%;padding:2px 5px;font-size:10px;font-weight:700;min-width:18px;text-align:center">1</span>
+      </div>
+      <div class="label">Panier</div>
+    </button>
+    <button class="tab" data-tab="avis">
+      <svg class="icon" viewBox="0 0 24 24">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <div class="label">Avis</div>
+    </button>
+    <button class="tab" data-tab="support">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+      </svg>
+      <div class="label">Support</div>
+    </button>
   </nav>
 </div>
 
-<script src="app.js"></script>
+<script>
+const PRODUCTS = [
+  {id:1, name:"AMNESIA", farm:"coffee shop", gradient:"135deg,#667eea 0%,#764ba2 100%", variants:[
+    {label:"3,33G", price:20}, {label:"5G", price:30}, {label:"10G", price:60}, {label:"50G", price:250}, {label:"100G", price:450}
+  ]},
+  {id:2, name:"NEEDLES KETA", farm:"holland", gradient:"135deg,#fa709a 0%,#fee140 100%", variants:[
+    {label:"1G", price:20}, {label:"2G", price:40}, {label:"3G", price:50}, {label:"5G", price:80}, {label:"10G", price:150}
+  ]},
+  {id:3, name:"CHAMPAGNE", farm:"hollande", gradient:"135deg,#a8edea 0%,#fed6e3 100%", variants:[
+    {label:"1G", price:20}, {label:"2G", price:40}, {label:"3G", price:50}, {label:"5G", price:80}, {label:"10G", price:150}
+  ]},
+  {id:4, name:"EL JEFE", farm:"colombie", gradient:"135deg,#ff9a9e 0%,#fecfef 100%", variants:[
+    {label:"0,5G", price:30}, {label:"1G", price:50}, {label:"2G", price:100}, {label:"5G", price:250}, {label:"10G", price:430}
+  ]},
+  {id:5, name:"SKITTLEZ CAKE 120u", farm:"hash montaine", gradient:"135deg,#ffecd2 0%,#fcb69f 100%", variants:[
+    {label:"2,5G", price:20}, {label:"5G", price:40}, {label:"10G", price:70}, {label:"50G", price:290}
+  ]},
+  {id:6, name:"PISTACCHIO 73u", farm:"hash montaine", gradient:"135deg,#ff6b9d 0%,#c44569 100%", variants:[
+    {label:"3G", price:20}, {label:"5G", price:50}, {label:"10G", price:90}, {label:"50G", price:250}
+  ]},
+  {id:7, name:"DEMBELE", farm:"morroco", gradient:"135deg,#f7b733 0%,#fc4a1a 100%", variants:[
+    {label:"3,5G", price:20}, {label:"5G", price:30}, {label:"10G", price:50}, {label:"50G", price:190}, {label:"100G", price:370}
+  ]},
+  {id:8, name:"LEMON X GELATO", farm:"top shelf", gradient:"135deg,#ff6e7f 0%,#bfe9ff 100%", variants:[
+    {label:"1,66G", price:20}, {label:"3,5G", price:40}, {label:"5G", price:60}, {label:"10G", price:110}
+  ]},
+  {id:9, name:"GEORGIA PIE", farm:"top shelf", gradient:"135deg,#38ef7d 0%,#11998e 100%", variants:[
+    {label:"1,66G", price:20}, {label:"3,5G", price:40}, {label:"5G", price:60}, {label:"10G", price:110}
+  ]},
+  {id:10, name:"DOMINO 280mg", farm:"selection", gradient:"135deg,#ee0979 0%,#ff6a00 100%", variants:[
+    {label:"3 unités", price:20}, {label:"10 unités", price:60}, {label:"50 unités", price:150}
+  ]},
+  {id:11, name:"FRESH FROZEN", farm:"fresh", gradient:"135deg,#4facfe 0%,#00f2fe 100%", variants:[
+    {label:"1,1G", price:20}, {label:"2,3G", price:40}, {label:"3,5G", price:50}, {label:"5G", price:80}, {label:"10G", price:160}
+  ]}
+];
+
+const fmt = n => n.toFixed(2) + ' €';
+let selectedVariant = null;
+let currentQty = 1;
+let currentProduct = null;
+
+// Système d'avis par produit
+function getProductReviews(productId) {
+  try {
+    const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
+    return reviews[productId] || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProductReview(productId, review) {
+  try {
+    const reviews = JSON.parse(localStorage.getItem('product_reviews') || '{}');
+    if (!reviews[productId]) reviews[productId] = [];
+    reviews[productId].unshift(review);
+    localStorage.setItem('product_reviews', JSON.stringify(reviews));
+  } catch(e) {
+    console.error('Error saving review:', e);
+  }
+}
+
+function getAverageRating(productId) {
+  const reviews = getProductReviews(productId);
+  if (reviews.length === 0) return 0;
+  const sum = reviews.reduce((acc, r) => acc + r.stars, 0);
+  return (sum / reviews.length).toFixed(1);
+}
+
+// Système d'enregistrement d'adresse
+function getSavedAddress() {
+  try {
+    return JSON.parse(localStorage.getItem('saved_address') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function saveAddress(address) {
+  try {
+    localStorage.setItem('saved_address', JSON.stringify(address));
+  } catch(e) {
+    console.error('Error saving address:', e);
+  }
+}
+
+function deleteSavedAddress() {
+  try {
+    localStorage.removeItem('saved_address');
+  } catch(e) {
+    console.error('Error deleting address:', e);
+  }
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast success';
+  toast.innerHTML = `<span>✓</span><span>${msg}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+function updateAddToCartBar() {
+  const bar = document.getElementById('addToCartBar');
+  if (selectedVariant) {
+    document.getElementById('currentQty').textContent = currentQty;
+    document.getElementById('cartBtnPrice').textContent = fmt(selectedVariant.price * currentQty);
+    bar.classList.add('show');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function renderProductGrid() {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '';
+  
+  PRODUCTS.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    
+    const avgRating = getAverageRating(p.id);
+    const reviewCount = getProductReviews(p.id).length;
+    const ratingHtml = avgRating > 0 ? `<div style="display:flex;align-items:center;gap:4px;margin-top:4px"><span style="color:#facc15">⭐</span><span style="font-size:13px;font-weight:600">${avgRating}</span><span style="color:#7a8594;font-size:12px">(${reviewCount})</span></div>` : '';
+    
+    card.innerHTML = `
+      <div class="thumb" style="background:linear-gradient(${p.gradient})"></div>
+      <div class="meta">
+        <div class="muted small">${p.farm}</div>
+        <b>${p.name}</b>
+        ${ratingHtml}
+        <div style="margin-top:10px"><button class="primary">Commander</button></div>
+      </div>
+    `;
+    card.onclick = () => openProductDetail(p);
+    grid.appendChild(card);
+  });
+}
+
+// Render initial grid
+renderProductGrid();
+
+// Synchroniser les badges au chargement
+const badge = document.getElementById('badge');
+const badgeBottom = document.getElementById('badgeBottom');
+if (badge && badgeBottom) {
+  badgeBottom.textContent = badge.textContent;
+}
+
+function openProductDetail(p) {
+  currentProduct = p;
+  selectedVariant = null;
+  currentQty = 1;
+  document.getElementById('productName').textContent = p.name;
+  
+  const reviews = getProductReviews(p.id);
+  const avgRating = getAverageRating(p.id);
+  const ratingDisplay = avgRating > 0 ? `<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span style="color:#facc15;font-size:24px">⭐</span><span style="font-size:20px;font-weight:700">${avgRating}</span><span style="color:#7a8594">(${reviews.length} avis)</span></div>` : '<div style="color:#7a8594;margin:8px 0">Aucun avis pour le moment</div>';
+  
+  let html = `
+    <div style="height:200px;background:linear-gradient(${p.gradient});border-radius:14px;margin-bottom:12px"></div>
+    <div class="muted">${p.farm}</div>
+    <h3 style="margin:12px 0">${p.name}</h3>
+    ${ratingDisplay}
+    <p class="muted small">Sélectionnez une taille :</p>
+  `;
+  
+  p.variants.forEach((v, idx) => {
+    html += `<div class="variant-option" data-idx="${idx}"><div><div style="font-weight:600">${v.label}</div><div class="muted small">Format</div></div><div style="font-weight:700;color:#5ba3f5;font-size:18px">${fmt(v.price)}</div></div>`;
+  });
+  
+  // Section avis
+  html += `
+    <div style="margin-top:30px;padding-top:20px;border-top:1px solid #2a3441">
+      <h3 style="font-size:18px;margin-bottom:16px">Avis clients (${reviews.length})</h3>
+  `;
+  
+  if (reviews.length > 0) {
+    reviews.forEach(r => {
+      html += `
+        <div style="background:#0d1419;padding:14px;border-radius:10px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+            <b>${r.name || 'Anonyme'}</b>
+            <span style="color:#facc15">${'⭐'.repeat(r.stars)}</span>
+          </div>
+          <div class="muted small">${new Date(r.date).toLocaleDateString('fr-FR')}</div>
+          <p style="margin-top:8px;font-size:14px">${r.text}</p>
+        </div>
+      `;
+    });
+  }
+  
+  // Formulaire d'avis
+  html += `
+      <div style="margin-top:20px;padding:16px;background:#0d1419;border-radius:12px">
+        <h4 style="font-size:16px;margin-bottom:12px">Laisser un avis</h4>
+        <input id="productRevName" placeholder="Votre nom (optionnel)" style="margin-bottom:10px">
+        <textarea id="productRevText" placeholder="Votre avis sur ce produit..." rows="3" style="margin-bottom:10px;resize:vertical"></textarea>
+        <select id="productRevStars" style="margin-bottom:10px">
+          <option value="5">5 ⭐⭐⭐⭐⭐ Excellent</option>
+          <option value="4">4 ⭐⭐⭐⭐ Très bien</option>
+          <option value="3">3 ⭐⭐⭐ Bien</option>
+          <option value="2">2 ⭐⭐ Moyen</option>
+          <option value="1">1 ⭐ Mauvais</option>
+        </select>
+        <button id="productRevSubmit" class="primary">Publier l'avis</button>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('productContent').innerHTML = html;
+  
+  // Handlers variants
+  document.querySelectorAll('.variant-option').forEach(o => {
+    o.onclick = () => {
+      selectedVariant = p.variants[parseInt(o.dataset.idx)];
+      currentQty = 1;
+      document.querySelectorAll('.variant-option').forEach(x => x.classList.remove('selected'));
+      o.classList.add('selected');
+      updateAddToCartBar();
+    };
+  });
+  
+  // Handler avis
+  document.getElementById('productRevSubmit').onclick = () => {
+    const text = document.getElementById('productRevText').value.trim();
+    if (!text) {
+      showToast('Veuillez écrire votre avis');
+      return;
+    }
+    
+    const review = {
+      name: document.getElementById('productRevName').value.trim(),
+      text: text,
+      stars: parseInt(document.getElementById('productRevStars').value),
+      date: Date.now()
+    };
+    
+    saveProductReview(p.id, review);
+    showToast('Merci pour votre avis ! ⭐');
+    
+    // Rafraîchir la fiche produit et la grille
+    renderProductGrid();
+    setTimeout(() => openProductDetail(p), 500);
+  };
+  
+  document.getElementById('productSheet').classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  updateAddToCartBar();
+}
+
+const decreaseQtyBtn = document.getElementById('decreaseQty');
+const increaseQtyBtn = document.getElementById('increaseQty');
+const addToCartBtnMain = document.getElementById('addToCartBtn');
+
+if (decreaseQtyBtn) {
+  decreaseQtyBtn.onclick = () => {
+    if (currentQty > 1) { 
+      currentQty--; 
+      updateAddToCartBar(); 
+    }
+  };
+}
+
+if (increaseQtyBtn) {
+  increaseQtyBtn.onclick = () => {
+    currentQty++; 
+    updateAddToCartBar();
+  };
+}
+
+if (addToCartBtnMain) {
+  addToCartBtnMain.onclick = () => {
+    if (selectedVariant && currentProduct) {
+      showToast(`${currentProduct.name} ajouté au panier (x${currentQty})`);
+      const badge = document.getElementById('badge');
+      if (badge) {
+        badge.textContent = parseInt(badge.textContent) + currentQty;
+      }
+      
+      setTimeout(() => {
+        const productSheet = document.getElementById('productSheet');
+        const addToCartBar = document.getElementById('addToCartBar');
+        
+        if (productSheet) productSheet.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+        if (addToCartBar) addToCartBar.classList.remove('show');
+      }, 1000);
+    }
+  };
+}
+document.getElementById('closeProduct').onclick = () => {
+  document.getElementById('productSheet').classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  document.getElementById('addToCartBar').classList.remove('show');
+};
+
+document.getElementById('cartBtn').onclick = () => {
+  const cartSheet = document.getElementById('cartSheet');
+  cartSheet.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  
+  // Calculer le total du panier
+  calculateCartTotal();
+  
+  // Charger l'adresse sauvegardée
+  const savedAddr = getSavedAddress();
+  const addrInput = document.getElementById('addr');
+  const savedInfo = document.getElementById('savedAddressInfo');
+  const savedText = document.getElementById('savedAddressText');
+  const clearBtn = document.getElementById('clearAddress');
+  const saveCheck = document.getElementById('saveAddressCheck');
+  
+  if (savedAddr) {
+    addrInput.value = savedAddr;
+    savedText.textContent = savedAddr;
+    savedInfo.style.display = 'block';
+    clearBtn.style.display = 'block';
+    saveCheck.checked = true;
+  } else {
+    savedInfo.style.display = 'none';
+    clearBtn.style.display = 'none';
+    saveCheck.checked = false;
+  }
+  
+  // Setup delivery options
+  setTimeout(() => {
+    const deliveryOptions = document.querySelectorAll('.delivery-option');
+    deliveryOptions.forEach(option => {
+      option.onclick = function() {
+        deliveryOptions.forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        calculateCartTotal();
+      };
+    });
+  }, 100);
+};
+
+function calculateCartTotal() {
+  // Calculer le total des articles
+  let baseTotal = 0;
+  document.querySelectorAll('#lines .line').forEach(line => {
+    const priceText = line.querySelector('.line-price').textContent;
+    const price = parseFloat(priceText.replace(',', '.').replace(' €', ''));
+    if (!isNaN(price)) {
+      baseTotal += price;
+    }
+  });
+  
+  // Ajouter les frais de livraison
+  const selectedOption = document.querySelector('.delivery-option.selected');
+  const deliveryPrice = selectedOption ? parseFloat(selectedOption.dataset.price) : 0;
+  const total = baseTotal + deliveryPrice;
+  
+  const totalElement = document.getElementById('cartTotal');
+  if (totalElement) {
+    totalElement.textContent = fmt(total);
+  }
+}
+
+function setupDeliveryOptions() {
+  document.querySelectorAll('.delivery-option').forEach(option => {
+    option.onclick = () => {
+      document.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      calculateCartTotal();
+    };
+  });
+}
+
+function updateCartTotal() {
+  calculateCartTotal();
+}
+
+document.getElementById('clearAddress')?.addEventListener('click', () => {
+  if (confirm('Supprimer l\'adresse enregistrée ?')) {
+    deleteSavedAddress();
+    const addrInput = document.getElementById('addr');
+    const savedInfo = document.getElementById('savedAddressInfo');
+    const clearBtn = document.getElementById('clearAddress');
+    const saveCheck = document.getElementById('saveAddressCheck');
+    
+    if (addrInput) addrInput.value = '';
+    if (savedInfo) savedInfo.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (saveCheck) saveCheck.checked = false;
+    
+    showToast('Adresse supprimée');
+  }
+});
+document.getElementById('closeCart').onclick = () => {
+  const cartSheet = document.getElementById('cartSheet');
+  if (cartSheet) cartSheet.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+};
+
+const cartSheetElement = document.getElementById('cartSheet');
+if (cartSheetElement) {
+  cartSheetElement.addEventListener('click', (e) => {
+    if (e.target.id === 'cartSheet') {
+      cartSheetElement.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+  });
+}
+
+document.querySelectorAll('#lines .qty-btn').forEach(btn => {
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    const line = btn.closest('.line');
+    const qtyDisplay = line.querySelector('.qty-display');
+    const pricePerUnit = 30; // Prix de l'article (à adapter dynamiquement)
+    
+    if(btn.textContent === '−') {
+      let q = parseInt(qtyDisplay.textContent);
+      if(q > 1) {
+        qtyDisplay.textContent = q - 1;
+        line.querySelector('.line-price').textContent = fmt(pricePerUnit * (q - 1));
+        calculateCartTotal();
+        showToast('Quantité mise à jour');
+      }
+    } else if(btn.textContent === '+') {
+      let q = parseInt(qtyDisplay.textContent);
+      qtyDisplay.textContent = q + 1;
+      line.querySelector('.line-price').textContent = fmt(pricePerUnit * (q + 1));
+      calculateCartTotal();
+      showToast('Quantité mise à jour');
+    } else if(btn.textContent === '🗑') {
+      line.remove();
+      calculateCartTotal();
+      showToast('Article retiré');
+      
+      const badge = document.getElementById('badge');
+      const badgeBottom = document.getElementById('badgeBottom');
+      if (badge) {
+        const newCount = parseInt(badge.textContent) - 1;
+        badge.textContent = newCount;
+        if (badgeBottom) badgeBottom.textContent = newCount;
+      }
+    }
+  };
+});
+
+const validateOrderBtn = document.querySelector('#cartSheet .primary');
+if (validateOrderBtn) {
+  validateOrderBtn.onclick = () => {
+    const addrInput = document.getElementById('addr');
+    const address = addrInput?.value.trim() || '';
+    
+    if (!address) {
+      showToast('Veuillez entrer une adresse de livraison');
+      if (addrInput) addrInput.focus();
+      return;
+    }
+    
+    // Récupérer le mode de livraison sélectionné
+    const selectedDelivery = document.querySelector('.delivery-option.selected');
+    const deliveryType = selectedDelivery?.dataset.delivery === 'millau' ? 'Livraison sur Millau' : 'Livraison extérieure (+20€)';
+    
+    // Sauvegarder l'adresse si demandé
+    const saveCheck = document.getElementById('saveAddressCheck');
+    if (saveCheck?.checked) {
+      saveAddress(address);
+    }
+    
+    showToast(`Commande créée #123 🎉 - ${deliveryType}`);
+    setTimeout(() => {
+      const cartSheet = document.getElementById('cartSheet');
+      if (cartSheet) cartSheet.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }, 1500);
+  };
+}
+
+document.querySelectorAll('.bottom .tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.bottom .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + tab.dataset.tab).classList.add('active');
+  };
+});
+
+const revSubmitBtn = document.getElementById('revSubmit');
+if (revSubmitBtn) {
+  revSubmitBtn.onclick = () => {
+    const textArea = document.getElementById('revText');
+    const text = textArea?.value.trim() || '';
+    
+    if (!text) { 
+      showToast('Veuillez écrire un avis'); 
+      return; 
+    }
+    
+    const nameInput = document.getElementById('revName');
+    const starsSelect = document.getElementById('revStars');
+    const name = nameInput?.value.trim() || 'Anonyme';
+    const stars = parseInt(starsSelect?.value || '5');
+    
+    const div = document.createElement('div');
+    div.style.cssText = 'background:#1e2936;padding:16px;border-radius:12px;margin-bottom:12px';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>${name}</b><span>${'⭐'.repeat(stars)}</span></div><p class="small muted">À l'instant</p><p style="margin-top:8px">${text}</p>`;
+    
+    const reviewsList = document.getElementById('reviewsList');
+    if (reviewsList) {
+      reviewsList.insertBefore(div, reviewsList.firstChild);
+    }
+    
+    if (nameInput) nameInput.value = '';
+    if (textArea) textArea.value = '';
+    showToast('Avis publié avec succès !');
+  };
+}
+
+function closeMenu() {
+  const sideMenu = document.getElementById('sideMenu');
+  const overlay = document.getElementById('menuOverlay');
+  if (sideMenu) sideMenu.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+}
+
+const menuBtn = document.getElementById('menuBtn');
+const menuClose = document.getElementById('menuClose');
+const menuOverlay = document.getElementById('menuOverlay');
+
+if (menuBtn) {
+  menuBtn.onclick = () => {
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('menuOverlay');
+    if (sideMenu) sideMenu.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+  };
+}
+
+if (menuClose) menuClose.onclick = closeMenu;
+if (menuOverlay) menuOverlay.onclick = closeMenu;
+
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.onclick = () => {
+    const page = item.dataset.page;
+    
+    // Changer de page
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    
+    // Mettre à jour la navigation en bas
+    document.querySelectorAll('.bottom .tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.bottom .tab[data-tab="${page}"]`)?.classList.add('active');
+    
+    // Fermer le menu
+    closeMenu();
+  };
+});
+</script>
 </body>
 </html>
