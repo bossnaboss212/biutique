@@ -86,8 +86,11 @@ tbody tr:last-child td{border-bottom:none}
 .form-group input,.form-group select,.form-group textarea{margin:0}
 
 /* Chart */
-.chart-container{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px}
-.chart-container h3{margin-bottom:16px;font-size:16px}
+.chart-container{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;transition:all 0.2s}
+.chart-container:hover{box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.chart-container h3{margin-bottom:16px;font-size:16px;display:flex;align-items:center;gap:8px}
+.chart-container h3[onclick]{cursor:pointer;user-select:none}
+.chart-container h3[onclick]:hover{color:var(--accent)}
 
 /* Loading */
 .loading{display:none;justify-content:center;align-items:center;padding:40px}
@@ -179,6 +182,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="tabs">
       <button class="tab-btn active" data-tab="orders">📦 Commandes</button>
       <button class="tab-btn" data-tab="finances">💰 Finances</button>
+      <button class="tab-btn" data-tab="payroll">💼 Paie</button>
       <button class="tab-btn" data-tab="stock">📊 Stock</button>
       <button class="tab-btn" data-tab="products">🛍 Produits</button>
       <button class="tab-btn" data-tab="reviews">⭐ Avis</button>
@@ -229,34 +233,85 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- Tab: Finances -->
     <div class="tab-content" id="tab-finances">
-      <!-- Stats Finances -->
-      <div class="stats" style="margin-bottom:20px">
+      <!-- KPI Cards avancés -->
+      <div class="stats" style="margin-bottom:20px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
         <div class="stat-card">
-          <h3>Revenus totaux</h3>
+          <h3>💰 Revenus totaux</h3>
           <div class="value" style="color:var(--success)" id="totalRevenue">0,00 €</div>
-          <div class="trend up" id="revenueTrend" style="display:none">
-            <span>↗</span>
-            <span>+15% ce mois</span>
-          </div>
+          <div class="trend" id="revenueTrend"></div>
         </div>
         <div class="stat-card">
-          <h3>Dépenses totales</h3>
+          <h3>💸 Dépenses totales</h3>
           <div class="value" style="color:var(--danger)" id="totalExpenses">0,00 €</div>
+          <div class="trend" id="expensesTrend"></div>
         </div>
         <div class="stat-card">
-          <h3>Bénéfice net</h3>
+          <h3>💎 Bénéfice net</h3>
           <div class="value" id="netProfit">0,00 €</div>
+          <div class="trend" id="profitTrend"></div>
         </div>
         <div class="stat-card">
-          <h3>Balance du mois</h3>
-          <div class="value" style="font-size:24px" id="monthBalance">0,00 €</div>
+          <h3>📊 Marge bénéficiaire</h3>
+          <div class="value" style="font-size:28px" id="profitMargin">0%</div>
+          <div class="muted small">Bénéfice / Revenus</div>
+        </div>
+        <div class="stat-card">
+          <h3>📈 Croissance CA</h3>
+          <div class="value" style="font-size:28px" id="revenueGrowth">0%</div>
+          <div class="muted small">vs mois précédent</div>
+        </div>
+        <div class="stat-card">
+          <h3>💵 Solde de caisse</h3>
+          <div class="value" id="cashBalance">0,00 €</div>
+          <div class="muted small" id="cashStatus">État de trésorerie</div>
+        </div>
+        <div class="stat-card">
+          <h3>🎯 Objectif mensuel</h3>
+          <div class="value" style="font-size:24px" id="monthlyGoalProgress">0%</div>
+          <div class="muted small"><span id="monthlyGoalAmount">0€</span> / <span id="monthlyGoalTarget">5000€</span></div>
+        </div>
+        <div class="stat-card">
+          <h3>📆 Moyenne journalière</h3>
+          <div class="value" style="font-size:24px" id="dailyAverage">0,00 €</div>
+          <div class="muted small">Bénéfice par jour</div>
         </div>
       </div>
 
-      <!-- Formulaire ajout transaction -->
+      <!-- Gestion solde de caisse -->
+      <div class="stock-form" style="margin-bottom:20px">
+        <h3>💵 Ajuster le solde de caisse</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+          <div>
+            <label>Solde actuel</label>
+            <input id="currentCashBalance" type="number" step="0.01" disabled>
+          </div>
+          <div>
+            <label>Nouveau solde (€)</label>
+            <input id="newCashBalance" type="number" step="0.01" placeholder="Ex: 1500.00">
+          </div>
+          <button id="updateCashBalance">💾 Mettre à jour</button>
+        </div>
+        <div style="margin-top:8px;color:var(--muted);font-size:13px">
+          💡 Le solde de caisse représente l'argent liquide disponible. Il s'ajuste automatiquement avec les transactions.
+        </div>
+      </div>
+
+      <!-- Objectif mensuel -->
+      <div class="stock-form" style="margin-bottom:20px">
+        <h3>🎯 Définir l'objectif de chiffre d'affaires mensuel</h3>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
+          <div>
+            <label>Objectif mensuel (€)</label>
+            <input id="monthlyGoalInput" type="number" step="100" min="0" placeholder="Ex: 5000">
+          </div>
+          <button id="setMonthlyGoal">🎯 Définir</button>
+        </div>
+      </div>
+
+      <!-- Formulaire ajout transaction amélioré -->
       <div class="stock-form">
         <h3>➕ Nouvelle transaction</h3>
-        <div class="stock-grid" style="grid-template-columns:1fr 1fr 2fr 1fr 2fr auto">
+        <div style="display:grid;grid-template-columns:1fr 1fr 2fr 1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
             <label>Type</label>
             <select id="transactionType">
@@ -273,12 +328,15 @@ tbody tr:last-child td{border-bottom:none}
               <option value="salaire">Salaire</option>
               <option value="loyer">Loyer</option>
               <option value="publicite">Publicité</option>
+              <option value="commission">Commission</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="assurance">Assurance</option>
               <option value="autre">Autre</option>
             </select>
           </div>
           <div>
             <label>Description</label>
-            <input id="transactionDescription" placeholder="Ex: Réapprovisionnement AMNESIA">
+            <input id="transactionDescription" placeholder="Ex: Réapprovisionnement AMNESIA 100G">
           </div>
           <div>
             <label>Montant (€)</label>
@@ -288,44 +346,149 @@ tbody tr:last-child td{border-bottom:none}
             <label>Date</label>
             <input id="transactionDate" type="date">
           </div>
-          <button id="addTransaction">Ajouter</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+          <div>
+            <label>Payé par</label>
+            <select id="transactionPayment">
+              <option value="especes">💵 Espèces</option>
+              <option value="cb">💳 Carte bancaire</option>
+              <option value="virement">🏦 Virement</option>
+              <option value="crypto">₿ Crypto</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div>
+            <label>Note (optionnel)</label>
+            <input id="transactionNote" placeholder="Note interne...">
+          </div>
+          <button id="addTransaction">➕ Ajouter</button>
         </div>
       </div>
 
-      <!-- Filtres -->
+      <!-- Analyses et graphiques -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin:20px 0">
+        <!-- Graphique principal -->
+        <div class="chart-container">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="margin:0;cursor:pointer" onclick="toggleSection('financeChartContainer')">
+              <span>📈 Évolution financière</span>
+              <span id="financeChartContainerToggle" style="font-size:20px;margin-left:8px">▼</span>
+            </h3>
+            <select id="chartPeriod" style="width:auto;margin:0;padding:8px">
+              <option value="7">7 derniers jours</option>
+              <option value="30" selected>30 derniers jours</option>
+              <option value="90">90 derniers jours</option>
+              <option value="365">Année complète</option>
+            </select>
+          </div>
+          <div id="financeChartContainer">
+            <div id="financeChart" style="display:flex;gap:12px;align-items:flex-end;height:250px;padding:20px;background:var(--bg);border-radius:8px;overflow-x:auto">
+              <div style="flex:1;text-align:center;color:var(--muted)">Chargement...</div>
+            </div>
+            <div style="display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:13px">
+              <div><span style="display:inline-block;width:12px;height:12px;background:var(--success);border-radius:2px;margin-right:6px"></span>Revenus</div>
+              <div><span style="display:inline-block;width:12px;height:12px;background:var(--danger);border-radius:2px;margin-right:6px"></span>Dépenses</div>
+              <div><span style="display:inline-block;width:12px;height:12px;background:var(--accent);border-radius:2px;margin-right:6px"></span>Bénéfice</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top transactions -->
+        <div class="chart-container">
+          <h3 style="cursor:pointer" onclick="toggleSection('topExpenses')">
+            <span>🏆 Top 5 dépenses</span>
+            <span id="topExpensesToggle" style="font-size:20px;margin-left:8px">▼</span>
+          </h3>
+          <div id="topExpenses" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <!-- Analyse par catégorie et période -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <!-- Dépenses par catégorie -->
+        <div class="chart-container" style="cursor:pointer" onclick="toggleSection('categoryReport')">
+          <h3 style="display:flex;justify-content:space-between;align-items:center">
+            <span>📊 Dépenses par catégorie</span>
+            <span id="categoryReportToggle" style="font-size:20px;transition:transform 0.3s">▼</span>
+          </h3>
+          <div id="categoryReport" style="margin-top:12px"></div>
+        </div>
+
+        <!-- Analyse temporelle -->
+        <div class="chart-container" style="cursor:pointer" onclick="toggleSection('monthlyPerformance')">
+          <h3 style="display:flex;justify-content:space-between;align-items:center">
+            <span>📅 Performance mensuelle</span>
+            <span id="monthlyPerformanceToggle" style="font-size:20px;transition:transform 0.3s">▼</span>
+          </h3>
+          <div id="monthlyPerformance" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <!-- Prévisions et alertes -->
+      <div class="chart-container" style="margin-bottom:20px">
+        <h3 style="cursor:pointer;user-select:none" onclick="toggleSection('forecastSection')">
+          <span>🔮 Prévisions et analyse</span>
+          <span id="forecastSectionToggle" style="font-size:20px;margin-left:8px;transition:transform 0.3s">▼</span>
+        </h3>
+        <div id="forecastSection" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px">
+          <div style="padding:16px;background:var(--bg);border-radius:8px;border-left:4px solid var(--accent)">
+            <div style="font-weight:600;margin-bottom:8px">📊 Projection fin de mois</div>
+            <div style="font-size:24px;color:var(--accent);margin-bottom:4px" id="projectionEndMonth">0,00 €</div>
+            <div class="muted small">Basé sur la moyenne des 7 derniers jours</div>
+          </div>
+          <div style="padding:16px;background:var(--bg);border-radius:8px;border-left:4px solid var(--success)">
+            <div style="font-weight:600;margin-bottom:8px">💰 Meilleur jour</div>
+            <div style="font-size:24px;color:var(--success);margin-bottom:4px" id="bestDay">0,00 €</div>
+            <div class="muted small" id="bestDayDate">-</div>
+          </div>
+          <div style="padding:16px;background:var(--bg);border-radius:8px;border-left:4px solid var(--warning)">
+            <div style="font-weight:600;margin-bottom:8px">⚠️ Alertes</div>
+            <div id="financeAlerts" style="font-size:13px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtres et recherche -->
       <div class="toolbar">
+        <input type="text" id="searchTransaction" placeholder="🔍 Rechercher une transaction...">
         <select id="filterTransactionType">
           <option value="all">Tous les types</option>
-          <option value="revenue">Revenus uniquement</option>
-          <option value="expense">Dépenses uniquement</option>
+          <option value="revenue">💰 Revenus uniquement</option>
+          <option value="expense">💸 Dépenses uniquement</option>
         </select>
         <select id="filterTransactionCategory">
-          <option value="all">Toutes les catégories</option>
+          <option value="all">Toutes catégories</option>
           <option value="vente">Vente</option>
           <option value="achat_stock">Achat stock</option>
           <option value="livraison">Livraison</option>
           <option value="salaire">Salaire</option>
           <option value="loyer">Loyer</option>
           <option value="publicite">Publicité</option>
+          <option value="commission">Commission</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="assurance">Assurance</option>
           <option value="autre">Autre</option>
         </select>
         <select id="filterTransactionPeriod">
-          <option value="all">Toutes les périodes</option>
+          <option value="all">Toutes périodes</option>
           <option value="today">Aujourd'hui</option>
           <option value="week">Cette semaine</option>
           <option value="month">Ce mois</option>
+          <option value="lastmonth">Mois dernier</option>
           <option value="year">Cette année</option>
         </select>
-        <button id="exportFinances">📥 Exporter CSV</button>
+        <select id="filterTransactionPayment">
+          <option value="all">Tous paiements</option>
+          <option value="especes">Espèces</option>
+          <option value="cb">Carte bancaire</option>
+          <option value="virement">Virement</option>
+          <option value="crypto">Crypto</option>
+          <option value="autre">Autre</option>
+        </select>
+        <button id="exportFinances">📥 Export CSV</button>
+        <button id="exportFinancesExcel">📊 Export Excel</button>
         <button id="refreshFinances">🔄 Actualiser</button>
-      </div>
-
-      <!-- Graphique simple -->
-      <div class="chart-container">
-        <h3>📈 Revenus vs Dépenses (30 derniers jours)</h3>
-        <div id="financeChart" style="display:flex;gap:20px;align-items:flex-end;height:200px;padding:20px;background:var(--bg);border-radius:8px">
-          <div style="flex:1;text-align:center;color:var(--muted)">Chargement...</div>
-        </div>
       </div>
 
       <!-- Historique transactions -->
@@ -342,23 +505,225 @@ tbody tr:last-child td{border-bottom:none}
               <th>Type</th>
               <th>Catégorie</th>
               <th>Description</th>
+              <th>Paiement</th>
               <th>Montant</th>
+              <th>Note</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="transactionsTable">
             <tr>
-              <td colspan="6" class="empty-state">Aucune transaction</td>
+              <td colspan="8" class="empty-state">Aucune transaction</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Rapport par catégorie -->
+      <!-- Rapport récapitulatif -->
       <div class="chart-container" style="margin-top:30px">
-        <h3>📊 Dépenses par catégorie</h3>
-        <div id="categoryReport" style="padding:20px">
-          <div style="color:var(--muted);text-align:center">Aucune donnée</div>
+        <h3 style="cursor:pointer;user-select:none" onclick="toggleSection('summaryReport')">
+          <span>📄 Rapport récapitulatif</span>
+          <span id="summaryReportToggle" style="font-size:20px;margin-left:8px;transition:transform 0.3s">▼</span>
+        </h3>
+        <div id="summaryReport" style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Paie -->
+    <div class="tab-content" id="tab-payroll">
+      <!-- Stats Paie -->
+      <div class="stats" style="margin-bottom:20px">
+        <div class="stat-card">
+          <h3>💼 Masse salariale mensuelle</h3>
+          <div class="value" style="color:var(--accent)" id="totalPayroll">0,00 €</div>
+          <div class="muted small">Total brut ce mois</div>
+        </div>
+        <div class="stat-card">
+          <h3>👥 Employés actifs</h3>
+          <div class="value" id="activeEmployees">0</div>
+          <div class="muted small">Salariés en poste</div>
+        </div>
+        <div class="stat-card">
+          <h3>📅 Paies en attente</h3>
+          <div class="value" style="color:var(--warning)" id="pendingPayments">0</div>
+          <div class="muted small">À payer ce mois</div>
+        </div>
+        <div class="stat-card">
+          <h3>💸 Payé ce mois</h3>
+          <div class="value" style="color:var(--success)" id="paidThisMonth">0,00 €</div>
+          <div class="muted small">Déjà versé</div>
+        </div>
+      </div>
+
+      <!-- Ajouter un employé -->
+      <div class="stock-form" style="margin-bottom:20px">
+        <h3>➕ Ajouter un employé</h3>
+        <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 2fr auto;gap:10px;margin-bottom:10px">
+          <div>
+            <label>Nom complet</label>
+            <input id="employeeName" placeholder="Ex: Jean Dupont">
+          </div>
+          <div>
+            <label>Poste</label>
+            <input id="employeePosition" placeholder="Ex: Livreur">
+          </div>
+          <div>
+            <label>Type</label>
+            <select id="employeeType">
+              <option value="mensuel">Mensuel</option>
+              <option value="horaire">Horaire</option>
+              <option value="journalier">Journalier</option>
+            </select>
+          </div>
+          <div>
+            <label>Salaire (€)</label>
+            <input id="employeeSalary" type="number" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <label>Date d'embauche</label>
+            <input id="employeeHireDate" type="date">
+          </div>
+          <button id="addEmployee">Ajouter</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted)">
+          💡 <strong>Mensuel:</strong> salaire fixe/mois • <strong>Horaire:</strong> tarif/heure • <strong>Journalier:</strong> tarif/jour
+        </div>
+      </div>
+
+      <!-- Liste des employés -->
+      <h3 style="margin-bottom:12px">👥 Liste des employés</h3>
+      <div class="table-container" style="margin-bottom:30px">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Poste</th>
+              <th>Type</th>
+              <th>Salaire</th>
+              <th>Date d'embauche</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="employeesTable">
+            <tr>
+              <td colspan="7" class="empty-state">Aucun employé</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Générer une paie -->
+      <div class="stock-form" style="margin-bottom:20px">
+        <h3>💸 Générer une paie</h3>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 2fr auto;gap:10px">
+          <div>
+            <label>Employé</label>
+            <select id="payrollEmployee">
+              <option value="">Sélectionner...</option>
+            </select>
+          </div>
+          <div>
+            <label>Mois</label>
+            <select id="payrollMonth">
+              <option value="1">Janvier</option>
+              <option value="2">Février</option>
+              <option value="3">Mars</option>
+              <option value="4">Avril</option>
+              <option value="5">Mai</option>
+              <option value="6">Juin</option>
+              <option value="7">Juillet</option>
+              <option value="8">Août</option>
+              <option value="9">Septembre</option>
+              <option value="10">Octobre</option>
+              <option value="11">Novembre</option>
+              <option value="12">Décembre</option>
+            </select>
+          </div>
+          <div>
+            <label>Année</label>
+            <input id="payrollYear" type="number" value="2025">
+          </div>
+          <div>
+            <label>Heures/Jours</label>
+            <input id="payrollHours" type="number" step="0.5" value="0" placeholder="0">
+          </div>
+          <div>
+            <label>Primes (€)</label>
+            <input id="payrollBonus" type="number" step="0.01" value="0" placeholder="0.00">
+          </div>
+          <div>
+            <label>Note</label>
+            <input id="payrollNote" placeholder="Optionnel">
+          </div>
+          <button id="generatePayroll">Générer</button>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="toolbar">
+        <select id="filterPayrollStatus">
+          <option value="all">Tous les statuts</option>
+          <option value="pending">En attente</option>
+          <option value="paid">Payé</option>
+        </select>
+        <select id="filterPayrollMonth">
+          <option value="all">Tous les mois</option>
+          <option value="1">Janvier</option>
+          <option value="2">Février</option>
+          <option value="3">Mars</option>
+          <option value="4">Avril</option>
+          <option value="5">Mai</option>
+          <option value="6">Juin</option>
+          <option value="7">Juillet</option>
+          <option value="8">Août</option>
+          <option value="9">Septembre</option>
+          <option value="10">Octobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Décembre</option>
+        </select>
+        <select id="filterPayrollYear">
+          <option value="all">Toutes les années</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+        <button id="exportPayroll">📥 Export CSV</button>
+        <button id="refreshPayroll">🔄 Actualiser</button>
+      </div>
+
+      <!-- Historique des paies -->
+      <h3 style="margin:20px 0 12px 0">📋 Historique des paies</h3>
+      <div class="loading" id="payrollLoading">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Employé</th>
+              <th>Période</th>
+              <th>Salaire brut</th>
+              <th>Primes</th>
+              <th>Net à payer</th>
+              <th>Statut</th>
+              <th>Date paiement</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="payrollTable">
+            <tr>
+              <td colspan="8" class="empty-state">Aucune paie enregistrée</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rapport annuel -->
+      <div class="chart-container" style="margin-top:30px">
+        <h3>📊 Évolution de la masse salariale</h3>
+        <div id="payrollChart" style="display:flex;gap:12px;align-items:flex-end;height:200px;padding:20px;background:var(--bg);border-radius:8px;overflow-x:auto">
+          <div style="flex:1;text-align:center;color:var(--muted)">Aucune donnée</div>
         </div>
       </div>
     </div>
@@ -1022,6 +1387,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     const tab = btn.dataset.tab;
     if (tab === 'orders') loadOrders();
     else if (tab === 'finances') loadFinances();
+    else if (tab === 'payroll') loadPayroll();
     else if (tab === 'stock') loadStockData();
     else if (tab === 'products') loadProducts();
     else if (tab === 'reviews') loadReviews();
@@ -1355,6 +1721,8 @@ function initDemoData() {
         description: 'Commande #1 - AMNESIA 5G',
         amount: 30,
         date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'especes',
+        note: 'Client régulier',
         created_at: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
@@ -1363,7 +1731,19 @@ function initDemoData() {
         description: 'Commande #2 - NEEDLES KETA 2G x2',
         amount: 100,
         date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'cb',
+        note: 'Livraison express',
         created_at: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'revenue',
+        category: 'vente',
+        description: 'Commande #3 - EL JEFE 1G',
+        amount: 50,
+        date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'crypto',
+        note: '',
+        created_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'expense',
@@ -1371,6 +1751,8 @@ function initDemoData() {
         description: 'Réapprovisionnement AMNESIA 100G',
         amount: 450,
         date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'virement',
+        note: 'Fournisseur principal',
         created_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
@@ -1379,6 +1761,8 @@ function initDemoData() {
         description: 'Frais de livraison - Lot du 15/12',
         amount: 50,
         date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'especes',
+        note: '',
         created_at: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
@@ -1387,18 +1771,150 @@ function initDemoData() {
         description: 'Publicité Telegram - Décembre',
         amount: 100,
         date: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'cb',
+        note: 'Campagne mensuelle',
         created_at: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'revenue',
         category: 'vente',
-        description: 'Commande #3 - EL JEFE 1G',
-        amount: 50,
-        date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        created_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
+        description: 'Commande #4 - LEMON X GELATO 3.5G',
+        amount: 40,
+        date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'especes',
+        note: '',
+        created_at: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'expense',
+        category: 'salaire',
+        description: 'Salaire livreur - Décembre',
+        amount: 300,
+        date: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'virement',
+        note: 'Paiement mensuel',
+        created_at: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'revenue',
+        category: 'vente',
+        description: 'Commande #5 - SKITTLEZ CAKE 5G',
+        amount: 40,
+        date: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'cb',
+        note: 'Nouveau client',
+        created_at: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'expense',
+        category: 'loyer',
+        description: 'Loyer local - Décembre',
+        amount: 500,
+        date: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        payment: 'virement',
+        note: '',
+        created_at: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString()
       }
     ];
     localStorage.setItem('finance_transactions', JSON.stringify(demoTransactions));
+  }
+  
+  // Initialiser le solde de caisse
+  if (!localStorage.getItem('cash_balance')) {
+    localStorage.setItem('cash_balance', '1500');
+  }
+  
+  // Initialiser l'objectif mensuel
+  if (!localStorage.getItem('monthly_goal')) {
+    localStorage.setItem('monthly_goal', '5000');
+  }
+  
+  // Initialiser données employés de démo
+  if (!localStorage.getItem('employees')) {
+    const demoEmployees = [
+      {
+        name: 'Jean Dupont',
+        position: 'Livreur',
+        type: 'mensuel',
+        salary: 1800,
+        hireDate: new Date(2024, 0, 15).toISOString().split('T')[0],
+        status: 'active',
+        createdAt: new Date(2024, 0, 15).toISOString()
+      },
+      {
+        name: 'Marie Martin',
+        position: 'Préparatrice',
+        type: 'horaire',
+        salary: 15,
+        hireDate: new Date(2024, 5, 1).toISOString().split('T')[0],
+        status: 'active',
+        createdAt: new Date(2024, 5, 1).toISOString()
+      },
+      {
+        name: 'Paul Dubois',
+        position: 'Assistant',
+        type: 'mensuel',
+        salary: 1500,
+        hireDate: new Date(2024, 8, 10).toISOString().split('T')[0],
+        status: 'active',
+        createdAt: new Date(2024, 8, 10).toISOString()
+      }
+    ];
+    localStorage.setItem('employees', JSON.stringify(demoEmployees));
+  }
+  
+  // Initialiser données paies de démo
+  if (!localStorage.getItem('payroll_records')) {
+    const demoPayroll = [
+      {
+        employeeName: 'Jean Dupont',
+        employeePosition: 'Livreur',
+        month: 12,
+        year: 2024,
+        type: 'mensuel',
+        hours: 0,
+        grossAmount: 1800,
+        bonus: 100,
+        charges: 418,
+        netAmount: 1482,
+        note: 'Prime de Noël',
+        status: 'paid',
+        paymentDate: new Date(2024, 11, 30).toISOString(),
+        createdAt: new Date(2024, 11, 25).toISOString()
+      },
+      {
+        employeeName: 'Marie Martin',
+        employeePosition: 'Préparatrice',
+        month: 12,
+        year: 2024,
+        type: 'horaire',
+        hours: 120,
+        grossAmount: 1800,
+        bonus: 0,
+        charges: 396,
+        netAmount: 1404,
+        note: '120 heures travaillées',
+        status: 'paid',
+        paymentDate: new Date(2024, 11, 30).toISOString(),
+        createdAt: new Date(2024, 11, 25).toISOString()
+      },
+      {
+        employeeName: 'Paul Dubois',
+        employeePosition: 'Assistant',
+        month: 12,
+        year: 2024,
+        type: 'mensuel',
+        hours: 0,
+        grossAmount: 1500,
+        bonus: 0,
+        charges: 330,
+        netAmount: 1170,
+        note: '',
+        status: 'pending',
+        createdAt: new Date(2024, 11, 25).toISOString()
+      }
+    ];
+    localStorage.setItem('payroll_records', JSON.stringify(demoPayroll));
   }
 }
 
