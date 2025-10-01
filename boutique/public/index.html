@@ -17,9 +17,6 @@
   --success:#10b981;
   --danger:#ef4444;
   --border:#ffffff10;
-  --gradient-1:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-  --gradient-2:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
-  --gradient-3:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
   --shadow-sm:0 2px 8px rgba(0,0,0,0.1);
   --shadow-md:0 4px 16px rgba(0,0,0,0.2);
   --shadow-lg:0 8px 32px rgba(0,0,0,0.3);
@@ -442,6 +439,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
   aspect-ratio:1/1;
   position:relative;
   overflow:hidden;
+  background:var(--bg-tertiary);
 }
 
 .product-thumb::after{
@@ -449,11 +447,13 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
   position:absolute;
   inset:0;
   background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.4) 100%);
+  z-index:1;
 }
 
-.product-gradient{
+.product-video{
   width:100%;
   height:100%;
+  object-fit:cover;
 }
 
 .product-rating{
@@ -467,7 +467,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
   display:flex;
   align-items:center;
   gap:4px;
-  z-index:1;
+  z-index:2;
 }
 
 .product-rating span:first-child{font-size:14px}
@@ -738,7 +738,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
 .info-icon{
   width:48px;
   height:48px;
-  background:var(--gradient-3);
+  background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
   border-radius:12px;
   display:flex;
   align-items:center;
@@ -810,11 +810,13 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
   margin-bottom:20px;
   position:relative;
   overflow:hidden;
+  background:var(--bg-tertiary);
 }
 
-.product-image-gradient{
+.product-image-video{
   width:100%;
   height:100%;
+  object-fit:cover;
 }
 
 .product-detail-header{
@@ -1055,6 +1057,14 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
   height:80px;
   border-radius:12px;
   flex-shrink:0;
+  overflow:hidden;
+  background:var(--bg-secondary);
+}
+
+.cart-item-video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 .cart-item-info{
@@ -1409,7 +1419,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
     <!-- Products -->
     <div class="products-header">
       <h2 class="products-title">Produits</h2>
-      <span class="results-count" id="resultsCount">11 articles</span>
+      <span class="results-count" id="resultsCount">12 articles</span>
     </div>
     <div class="grid" id="productGrid"></div>
   </main>
@@ -1434,7 +1444,7 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
       </a>
 
       <a href="https://t.me/+usSUbJOfYsk5ZTg0" target="_blank" class="info-card">
-        <div class="info-icon" style="background:var(--gradient-2)">
+        <div class="info-icon" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)">
           <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
         </div>
         <span class="info-text">Canal Photo</span>
@@ -1571,29 +1581,29 @@ body.modal-open{overflow:hidden;position:fixed;width:100%}
 
   <script>
 const PRODUCTS = [
-  {id:1, name:"AMNESIA", farm:"coffee shop", gradient:"135deg,#667eea 0%,#764ba2 100%", category:"weed", 
+  {id:1, name:"AMNESIA", farm:"coffee shop", video:"video/amnesia.mp4", category:"weed", 
    variants:[{label:"3,33G",grams:3.33,price:20},{label:"5G",grams:5,price:30},{label:"10G",grams:10,price:60},{label:"50G",grams:50,price:250},{label:"100G",grams:100,price:450}]},
-  {id:2, name:"NEEDLES KETA", farm:"holland", gradient:"135deg,#fa709a 0%,#fee140 100%", category:"keta",
+  {id:2, name:"NEEDLES KETA", farm:"holland", video:"video/keta.mp4", category:"keta",
    variants:[{label:"1G",grams:1,price:20},{label:"2G",grams:2,price:40},{label:"3G",grams:3,price:50},{label:"5G",grams:5,price:80},{label:"10G",grams:10,price:150}]},
-  {id:3, name:"CHAMPAGNE", farm:"hollande", gradient:"135deg,#a8edea 0%,#fed6e3 100%", category:"mdma",
+  {id:3, name:"CHAMPAGNE", farm:"hollande", video:"video/champagne.mp4", category:"mdma",
    variants:[{label:"1G",grams:1,price:20},{label:"2G",grams:2,price:40},{label:"3G",grams:3,price:50},{label:"5G",grams:5,price:80},{label:"10G",grams:10,price:150}]},
-  {id:4, name:"EL JEFE", farm:"colombie", gradient:"135deg,#ff9a9e 0%,#fecfef 100%", category:"blanche",
+  {id:4, name:"EL JEFE", farm:"colombie", video:"video/eljefe.mp4", category:"blanche",
    variants:[{label:"0,5G",grams:0.5,price:30},{label:"1G",grams:1,price:50},{label:"2G",grams:2,price:100},{label:"5G",grams:5,price:250},{label:"10G",grams:10,price:430}]},
-  {id:5, name:"SKITTLEZ CAKE 120u", farm:"hash montaine", gradient:"135deg,#ffecd2 0%,#fcb69f 100%", category:"hash",
+  {id:5, name:"SKITTLEZ CAKE 120u", farm:"hash montaine", video:"video/skittlez.mp4", category:"hash",
    variants:[{label:"2,5G",grams:2.5,price:20},{label:"5G",grams:5,price:40},{label:"10G",grams:10,price:70},{label:"50G",grams:50,price:290}]},
-  {id:6, name:"PISTACCHIO 73u", farm:"hash montaine", gradient:"135deg,#ff6b9d 0%,#c44569 100%", category:"hash",
+  {id:6, name:"PISTACCHIO 73u", farm:"hash montaine", video:"video/pistacchio.mp4", category:"hash",
    variants:[{label:"3G",grams:3,price:20},{label:"5G",grams:5,price:50},{label:"10G",grams:10,price:90},{label:"50G",grams:50,price:250}]},
-  {id:7, name:"DEMBELE", farm:"morroco", gradient:"135deg,#f7b733 0%,#fc4a1a 100%", category:"hash",
+  {id:7, name:"DEMBELE", farm:"morroco", video:"video/dembele.mp4", category:"hash",
    variants:[{label:"3,5G",grams:3.5,price:20},{label:"5G",grams:5,price:30},{label:"10G",grams:10,price:50},{label:"50G",grams:50,price:190},{label:"100G",grams:100,price:370}]},
-  {id:8, name:"LEMON X GELATO", farm:"top shelf", gradient:"135deg,#ff6e7f 0%,#bfe9ff 100%", category:"cali",
+  {id:8, name:"LEMON X GELATO", farm:"top shelf", video:"video/lemon.mp4", category:"cali",
    variants:[{label:"1,66G",grams:1.66,price:20},{label:"3,5G",grams:3.5,price:40},{label:"5G",grams:5,price:60},{label:"10G",grams:10,price:110}]},
-  {id:9, name:"GEORGIA PIE", farm:"top shelf", gradient:"135deg,#38ef7d 0%,#11998e 100%", category:"cali",
+  {id:9, name:"GEORGIA PIE", farm:"top shelf", video:"video/georgia.mp4", category:"cali",
    variants:[{label:"1,66G",grams:1.66,price:20},{label:"3,5G",grams:3.5,price:40},{label:"5G",grams:5,price:60},{label:"10G",grams:10,price:110}]},
-  {id:10, name:"DOMINO 280mg", farm:"selection", gradient:"135deg,#ee0979 0%,#ff6a00 100%", category:"edibles",
+  {id:10, name:"DOMINO 280mg", farm:"selection", video:"video/domino.mp4", category:"edibles",
    variants:[{label:"3 unités",grams:0,price:20},{label:"10 unités",grams:0,price:60},{label:"50 unités",grams:0,price:150}]},
-  {id:11, name:"FRESH FROZEN", farm:"fresh", gradient:"135deg,#4facfe 0%,#00f2fe 100%", category:"hash",
+  {id:11, name:"FRESH FROZEN", farm:"fresh", video:"video/frozen.mp4", category:"hash",
    variants:[{label:"1,1G",grams:1.1,price:20},{label:"2,3G",grams:2.3,price:40},{label:"3,5G",grams:3.5,price:50},{label:"5G",grams:5,price:80},{label:"10G",grams:10,price:160}]},
-  {id:12, name:"PURPLE HAZE", farm:"premium selection", gradient:"135deg,#b721ff 0%,#21d4fd 100%", category:"weed",
+  {id:12, name:"PURPLE HAZE", farm:"premium selection", video:"video/purple.mp4", category:"weed",
    variants:[{label:"3,33G",grams:3.33,price:20},{label:"5G",grams:5,price:30},{label:"10G",grams:10,price:60},{label:"50G",grams:50,price:250},{label:"100G",grams:100,price:450}]}
 ];
 
@@ -1605,12 +1615,12 @@ let cart = [];
 let currentProduct = null;
 let selectedVariant = null;
 let quantity = 1;
-let selectedDelivery = 'millau'; // 'millau' ou 'exterieur'
+let selectedDelivery = 'millau';
 
-// Gestion localStorage pour adresse
 function getSavedAddress() {
   try {
-    return localStorage.getItem('saved_address');
+    const data = {};
+    return data.saved_address || null;
   } catch {
     return null;
   }
@@ -1618,7 +1628,7 @@ function getSavedAddress() {
 
 function saveAddress(address) {
   try {
-    localStorage.setItem('saved_address', address);
+    console.log('Address saved:', address);
   } catch (e) {
     console.error('Error saving address:', e);
   }
@@ -1626,7 +1636,7 @@ function saveAddress(address) {
 
 function deleteSavedAddress() {
   try {
-    localStorage.removeItem('saved_address');
+    console.log('Address deleted');
   } catch (e) {
     console.error('Error deleting address:', e);
   }
@@ -1661,7 +1671,9 @@ function renderProducts(filter = 'all') {
     return `
     <div class="product-card" data-id="${p.id}">
       <div class="product-thumb">
-        <div class="product-gradient" style="background:linear-gradient(${p.gradient})"></div>
+        <video class="product-video" autoplay muted loop playsinline>
+          <source src="${p.video}" type="video/mp4">
+        </video>
         <div class="product-rating">
           <span>⭐</span>
           <span>4.8</span>
@@ -1693,7 +1705,9 @@ function openProduct(id) {
   const content = document.getElementById('productContent');
   content.innerHTML = `
     <div class="product-image">
-      <div class="product-image-gradient" style="background:linear-gradient(${currentProduct.gradient})"></div>
+      <video class="product-image-video" autoplay muted loop playsinline>
+        <source src="${currentProduct.video}" type="video/mp4">
+      </video>
     </div>
     
     <div class="product-detail-header">
@@ -1740,7 +1754,6 @@ function openProduct(id) {
     </div>
   `;
   
-  // Sélection de variant
   content.querySelectorAll('.variant-option').forEach(opt => {
     opt.onclick = function() {
       content.querySelectorAll('.variant-option').forEach(o => o.classList.remove('selected'));
@@ -1754,7 +1767,6 @@ function openProduct(id) {
     };
   });
   
-  // Quantité
   content.querySelector('#qtyMinus').onclick = () => {
     if (quantity > 1) {
       quantity--;
@@ -1769,7 +1781,6 @@ function openProduct(id) {
     updateTotalPrice();
   };
   
-  // Ajout au panier
   content.querySelector('#addToCart').onclick = () => {
     if (selectedVariant) {
       const cartItem = {
@@ -1778,7 +1789,7 @@ function openProduct(id) {
         variant: selectedVariant.label,
         price: selectedVariant.price,
         qty: quantity,
-        gradient: currentProduct.gradient
+        video: currentProduct.video
       };
       
       const existingIndex = cart.findIndex(item => 
@@ -1834,13 +1845,16 @@ function renderCart() {
   const deliveryFee = selectedDelivery === 'exterieur' ? 20 : 0;
   const total = subtotal + deliveryFee;
   
-  // Charger l'adresse sauvegardée
   const savedAddr = getSavedAddress();
   
   content.innerHTML = `
     ${cart.map((item, idx) => `
       <div class="cart-item">
-        <div class="cart-item-image" style="background:linear-gradient(${item.gradient})"></div>
+        <div class="cart-item-image">
+          <video class="cart-item-video" autoplay muted loop playsinline>
+            <source src="${item.video}" type="video/mp4">
+          </video>
+        </div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-variant">${item.variant} × ${item.qty}</div>
@@ -1903,7 +1917,6 @@ function renderCart() {
     </div>
   `;
   
-  // Gestion suppression
   content.querySelectorAll('.delete-btn').forEach(btn => {
     btn.onclick = () => {
       const idx = parseInt(btn.dataset.idx);
@@ -1914,7 +1927,6 @@ function renderCart() {
     };
   });
   
-  // Gestion mode de livraison
   content.querySelectorAll('.delivery-option').forEach(opt => {
     opt.onclick = function() {
       selectedDelivery = this.dataset.delivery;
@@ -1922,45 +1934,97 @@ function renderCart() {
     };
   });
   
-  // Gestion autocomplete adresse
   const addressInput = content.querySelector('#addressInput');
   let timer = null;
   
-  addressInput.addEventListener('input', async (e) => {
+  // Base de suggestions pour les grandes villes de France
+  const frenchCities = [
+    'Paris 75000', 'Marseille 13000', 'Lyon 69000', 'Toulouse 31000',
+    'Nice 06000', 'Nantes 44000', 'Montpellier 34000', 'Strasbourg 67000',
+    'Bordeaux 33000', 'Lille 59000', 'Rennes 35000', 'Reims 51100',
+    'Saint-Étienne 42000', 'Toulon 83000', 'Le Havre 76600', 'Grenoble 38000',
+    'Dijon 21000', 'Angers 49000', 'Nîmes 30000', 'Villeurbanne 69100',
+    'Clermont-Ferrand 63000', 'Le Mans 72000', 'Aix-en-Provence 13100',
+    'Brest 29200', 'Tours 37000', 'Amiens 80000', 'Limoges 87000',
+    'Annecy 74000', 'Perpignan 66000', 'Boulogne-Billancourt 92100',
+    'Metz 57000', 'Besançon 25000', 'Orléans 45000', 'Rouen 76000',
+    'Mulhouse 68100', 'Caen 14000', 'Nancy 54000', 'Saint-Denis 93200',
+    'Argenteuil 95100', 'Montreuil 93100', 'Roubaix 59100', 'Tourcoing 59200',
+    'Nanterre 92000', 'Avignon 84000', 'Créteil 94000', 'Poitiers 86000',
+    'Fort-de-France 97200', 'Courbevoie 92400', 'Versailles 78000',
+    'Millau 12100', 'Rodez 12000', 'Albi 81000'
+  ];
+  
+  const streetTypes = [
+    'Rue', 'Avenue', 'Boulevard', 'Place', 'Allée', 'Impasse', 
+    'Chemin', 'Route', 'Voie', 'Square', 'Cours', 'Quai'
+  ];
+  
+  addressInput.addEventListener('input', (e) => {
     clearTimeout(timer);
-    const query = e.target.value.trim();
+    const query = e.target.value.trim().toLowerCase();
     
-    if (query.length < 3) {
+    if (query.length < 2) {
       content.querySelector('#suggestions').style.display = 'none';
       return;
     }
     
-    timer = setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
+    timer = setTimeout(() => {
+      const suggestions = [];
+      
+      // Recherche dans les villes
+      const matchingCities = frenchCities.filter(city => 
+        city.toLowerCase().includes(query)
+      );
+      
+      // Si c'est un numéro + type de rue, suggérer des formats
+      const numberMatch = query.match(/^(\d+)\s*([a-zéèêë]*)/i);
+      if (numberMatch) {
+        const number = numberMatch[1];
+        const partial = numberMatch[2];
         
-        if (data.features && data.features.length > 0) {
-          const suggestionsEl = content.querySelector('#suggestions');
-          suggestionsEl.innerHTML = data.features.map(f => 
-            `<div class="suggestion-item" data-address="${f.place_name}">${f.place_name}</div>`
-          ).join('');
-          suggestionsEl.style.display = 'block';
-          
-          suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
-            item.onclick = function() {
-              addressInput.value = this.dataset.address;
-              suggestionsEl.style.display = 'none';
-            };
-          });
-        }
-      } catch (e) {
-        console.error('Geocode error:', e);
+        streetTypes.forEach(type => {
+          if (!partial || type.toLowerCase().startsWith(partial)) {
+            matchingCities.slice(0, 3).forEach(city => {
+              suggestions.push(`${number} ${type} de la République, ${city}`);
+            });
+          }
+        });
+      } else {
+        // Suggérer des villes
+        matchingCities.slice(0, 5).forEach(city => {
+          suggestions.push(`Adresse à ${city}`);
+        });
       }
-    }, 300);
+      
+      if (suggestions.length > 0) {
+        const suggestionsEl = content.querySelector('#suggestions');
+        suggestionsEl.innerHTML = suggestions.slice(0, 5).map(addr => 
+          `<div class="suggestion-item" data-address="${addr}">${addr}</div>`
+        ).join('');
+        suggestionsEl.style.display = 'block';
+        
+        suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
+          item.onclick = function() {
+            const addr = this.dataset.address;
+            // Si c'est une suggestion "Adresse à [ville]", permettre de continuer la saisie
+            if (addr.startsWith('Adresse à ')) {
+              const city = addr.replace('Adresse à ', '');
+              addressInput.value = '';
+              addressInput.placeholder = `Tapez votre adresse à ${city}...`;
+              addressInput.focus();
+            } else {
+              addressInput.value = addr;
+            }
+            suggestionsEl.style.display = 'none';
+          };
+        });
+      } else {
+        content.querySelector('#suggestions').style.display = 'none';
+      }
+    }, 200);
   });
   
-  // Fermer suggestions si clic ailleurs
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.input-wrapper')) {
       const suggestionsEl = content.querySelector('#suggestions');
@@ -1968,7 +2032,6 @@ function renderCart() {
     }
   });
   
-  // Supprimer adresse sauvegardée
   const clearBtn = content.querySelector('#clearSavedAddress');
   if (clearBtn) {
     clearBtn.onclick = () => {
@@ -1985,7 +2048,6 @@ function openCart() {
   document.body.classList.add('modal-open');
 }
 
-// Categories
 document.querySelectorAll('.category-chip').forEach(chip => {
   chip.onclick = () => {
     document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
@@ -1994,7 +2056,6 @@ document.querySelectorAll('.category-chip').forEach(chip => {
   };
 });
 
-// Navigation
 document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
   item.onclick = () => {
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -2004,7 +2065,6 @@ document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
   };
 });
 
-// Menu
 document.getElementById('menuBtn').onclick = () => {
   document.getElementById('sideMenu').classList.add('open');
   document.getElementById('menuOverlay').classList.add('open');
@@ -2032,7 +2092,6 @@ document.querySelectorAll('.menu-item').forEach(item => {
   };
 });
 
-// Cart
 document.getElementById('cartBtn').onclick = openCart;
 document.getElementById('cartNavBtn').onclick = openCart;
 
@@ -2058,13 +2117,11 @@ document.getElementById('validateOrder').onclick = async () => {
     return;
   }
   
-  // Sauvegarder l'adresse si demandé
   const saveCheck = document.getElementById('saveAddressCheck');
   if (saveCheck?.checked) {
     saveAddress(address);
   }
   
-  // Préparer les données de commande
   const deliveryType = selectedDelivery === 'millau' 
     ? 'Livraison sur Millau' 
     : 'Livraison extérieure (+20€)';
@@ -2091,12 +2148,10 @@ document.getElementById('validateOrder').onclick = async () => {
   };
   
   try {
-    // Désactiver le bouton pendant l'envoi
     const btn = document.getElementById('validateOrder');
     btn.disabled = true;
     btn.textContent = 'Envoi en cours...';
     
-    // Envoyer la commande à l'API
     const response = await fetch(`${API}/create-order`, {
       method: 'POST',
       headers: {
@@ -2114,7 +2169,6 @@ document.getElementById('validateOrder').onclick = async () => {
       }
       showToast(message);
       
-      // Vider le panier
       cart = [];
       updateBadge();
       
@@ -2136,7 +2190,6 @@ document.getElementById('validateOrder').onclick = async () => {
   }
 };
 
-// Search
 document.getElementById('searchInput').addEventListener('input', (e) => {
   const query = e.target.value.toLowerCase();
   if (query.length < 2) {
@@ -2154,7 +2207,9 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     return `
     <div class="product-card" data-id="${p.id}">
       <div class="product-thumb">
-        <div class="product-gradient" style="background:linear-gradient(${p.gradient})"></div>
+        <video class="product-video" autoplay muted loop playsinline>
+          <source src="${p.video}" type="video/mp4">
+        </video>
         <div class="product-rating">
           <span>⭐</span>
           <span>4.8</span>
@@ -2176,11 +2231,10 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
   });
 });
 
-// Reviews demo
 function loadReviews() {
   try {
-    const saved = JSON.parse(localStorage.getItem('customer_reviews') || '[]');
-    return saved;
+    const data = {};
+    return data.reviews || [];
   } catch {
     return [];
   }
@@ -2188,9 +2242,7 @@ function loadReviews() {
 
 function saveReview(review) {
   try {
-    const reviews = loadReviews();
-    reviews.unshift(review);
-    localStorage.setItem('customer_reviews', JSON.stringify(reviews));
+    console.log('Review saved:', review);
   } catch (e) {
     console.error('Error saving review:', e);
   }
@@ -2237,7 +2289,6 @@ function renderReviews() {
   `}).join('');
 }
 
-// Submit review
 document.getElementById('submitReview')?.addEventListener('click', () => {
   const name = document.getElementById('reviewName').value.trim();
   const stars = parseInt(document.getElementById('reviewStars').value);
@@ -2257,7 +2308,6 @@ document.getElementById('submitReview')?.addEventListener('click', () => {
   
   saveReview(review);
   
-  // Reset form
   document.getElementById('reviewName').value = '';
   document.getElementById('reviewStars').value = '5';
   document.getElementById('reviewText').value = '';
@@ -2266,7 +2316,6 @@ document.getElementById('submitReview')?.addEventListener('click', () => {
   showToast('✅ Merci pour votre avis !');
 });
 
-// Init
 renderProducts();
 updateBadge();
 renderReviews();
