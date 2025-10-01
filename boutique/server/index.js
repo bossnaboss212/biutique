@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import cors from 'cors';
@@ -15,7 +14,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // =============================
@@ -305,6 +305,58 @@ function makeReceiptPDF(order) {
 }
 
 // =============================
+//   FONCTION ENVOI REÇU CLIENT
+// =============================
+
+async function sendReceiptToCustomer(order, customerChatId) {
+  if (!customerChatId) {
+    console.log('Pas de chat_id client, reçu non envoyé');
+    return false;
+  }
+  
+  try {
+    const items = JSON.parse(order.items || '[]');
+    const linesPretty = items.map((it, i) =>
+      ` ${i + 1}. ${it.name} - ${it.variant} - ${it.qty} × ${Number(it.price).toFixed(2)} € = ${Number(it.lineTotal).toFixed(2)} €`
+    ).join('\n');
+
+    const customerMessage = `✅ Commande confirmée !
+
+🛍 DROGUA CENTER - Reçu de commande
+
+⸻ Votre commande #${order.id} ⸻
+
+${linesPretty}
+
+📍 Livraison à:
+${order.address || '—'}
+
+💰 Montant total: ${order.total.toFixed(2)} €
+${order.discount > 0 ? `🎁 Remise fidélité: -${order.discount.toFixed(2)} €` : ''}
+
+⸻
+Merci pour votre commande ! 🌟
+Un livreur va vous contacter sous peu.`;
+
+    await tgSendMessage(customerChatId, customerMessage);
+    
+    // Envoyer aussi le PDF
+    try {
+      const pdfPath = makeReceiptPDF(order);
+      await tgSendPDF(customerChatId, pdfPath, `Votre reçu #${order.id}`);
+      console.log(`Reçu envoyé au client ${customerChatId}`);
+      return true;
+    } catch (e) {
+      console.error('Erreur envoi PDF client:', e);
+      return false;
+    }
+  } catch (e) {
+    console.error('Erreur sendReceiptToCustomer:', e);
+    return false;
+  }
+}
+
+// =============================
 //   API GEOCODING
 // =============================
 
@@ -333,7 +385,7 @@ app.get('/api/geocode', async (req, res) => {
 });
 
 // =============================
-//   API CRÉATION COMMANDE
+//   API CRÉATION COMMANDE (AVEC ENVOI REÇU CLIENT)
 // =============================
 
 app.post('/api/create-order', async (req, res) => {
@@ -343,7 +395,9 @@ app.post('/api/create-order', async (req, res) => {
       type = 'Livraison',
       address = '',
       items = [],
-      total = 0
+      total = 0,
+      telegram_user = null,
+      telegram_init_data = null
     } = req.body;
 
     // Validation
@@ -390,6 +444,7 @@ app.post('/api/create-order', async (req, res) => {
 ⸻ Détails de la commande ⸻
 Commande #${orderId}
 Client: ${customer}
+${telegram_user ? `📱 Telegram: ${telegram_user}` : ''}
 Type: ${order.type}
 
 ${linesPretty}
@@ -412,7 +467,7 @@ Merci pour votre confiance 🌟`;
         const pdfPath = makeReceiptPDF(order);
         await tgSendPDF(ADMIN_CHAT_ID, pdfPath, `Reçu #${orderId}`);
       } catch (pdfError) {
-        console.error('Erreur génération PDF:', pdfError);
+        console.error('Erreur génération PDF admin:', pdfError);
       }
     }
 
@@ -430,11 +485,51 @@ ${order.address || '—'}
       await tgSendMessage(DRIVER_CHAT_ID, driverMessage);
     }
 
+    // =============================
+    //   ENVOI DU REÇU AU CLIENT
+    // =============================
+    
+    let customerChatId = null;
+    let receiptSent = false;
+
+    // Cas 1: Récupérer user_id depuis Telegram Web App
+    if (telegram_init_data) {
+      try {
+        const params = new URLSearchParams(telegram_init_data);
+        const userJson = params.get('user');
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          customerChatId = user.id;
+          console.log('Client Telegram détecté:', user.id, user.username);
+        }
+      } catch (e) {
+        console.error('Erreur parsing Telegram init data:', e);
+      }
+    }
+
+    // Cas 2: User_id ou username fourni directement
+    if (!customerChatId && telegram_user) {
+      // Si c'est un nombre, c'est un user_id
+      if (!isNaN(telegram_user)) {
+        customerChatId = telegram_user;
+      } else if (telegram_user.startsWith('@')) {
+        // Si c'est un @username, on le log mais on ne peut pas envoyer directement
+        console.log('Username fourni:', telegram_user);
+        console.log('⚠️ Pour envoyer au client, il doit avoir fait /start sur le bot');
+      }
+    }
+
+    // Envoyer le reçu au client si on a son chat_id
+    if (customerChatId) {
+      receiptSent = await sendReceiptToCustomer(order, customerChatId);
+    }
+
     res.json({
       ok: true,
       id: orderId,
       discount: order.discount,
-      total: order.total
+      total: order.total,
+      receipt_sent: receiptSent
     });
   } catch (e) {
     console.error('create-order error:', e);
