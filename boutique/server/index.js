@@ -1,636 +1,735 @@
-import express from 'express';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-import PDFDocument from 'pdfkit';
-import FormData from 'form-data';
-import crypto from 'crypto';
+import React, { useState, useEffect } from 'react';
+import { BarChart3, TrendingUp, Users, Package, Download, Send, Bell, Calendar, DollarSign, ShoppingCart, AlertCircle, CheckCircle, Settings, FileText, MapPin } from 'lucide-react';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export default function AdminDashboard() {
+  const [token, setToken] = useState(localStorage.getItem('admin_token') || '');
+  const [password, setPassword] = useState('');
+  const [stats, setStats] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [period, setPeriod] = useState('all');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [alerts, setAlerts] = useState([]);
+  const [autoReports, setAutoReports] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+  const API_URL = window.location.origin;
 
-// =============================
-//   CONFIGURATION
-// =============================
-
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://meek-meerkat-a2e41f.netlify.app';
-const ADMIN_URL      = process.env.ADMIN_URL   || 'https://biutique-production.up.railway.app/admin.html';
-const ADMIN_CHAT_ID  = (process.env.ADMIN_CHAT_ID || '').trim();
-const ADMIN_USER_ID  = (process.env.ADMIN_USER_ID || '').trim();
-const ADMIN_OPEN     = (process.env.ADMIN_OPEN || '').trim() === '1';
-const DRIVER_CHAT_ID = (process.env.DRIVER_CHAT_ID || '').trim();
-const ADMIN_PASS     = process.env.ADMIN_PASS || 'gangstaforlife12';
-const MAPBOX_KEY     = process.env.MAPBOX_KEY;
-
-const TG_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
-
-// =============================
-//   TELEGRAM HELPERS
-// =============================
-
-async function tgSendMessage(chatId, text, extra = {}) {
-  if (!TELEGRAM_TOKEN || !chatId) {
-    console.warn('Telegram non configuré: TOKEN ou chatId manquant');
-    return;
-  }
-  try {
-    const response = await fetch(`${TG_API}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        chat_id: chatId, 
-        text, 
-        parse_mode: 'HTML', 
-        ...extra 
-      })
-    });
-    if (!response.ok) {
-      console.error('Erreur Telegram:', await response.text());
+  useEffect(() => {
+    if (token) {
+      loadData();
     }
-  } catch (e) {
-    console.error('tgSendMessage error:', e.message);
-  }
-}
+  }, [token, period]);
 
-async function tgSendWebAppKeyboard(chatId, text, webUrl) {
-  return tgSendMessage(chatId, text, {
-    reply_markup: {
-      keyboard: [[{ text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } }]],
-      resize_keyboard: true,
-      one_time_keyboard: false
-    }
-  });
-}
+  const showMessage = (msg, isError = false) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(''), 3000);
+  };
 
-async function tgSendAdminKeyboard(chatId, text, adminUrl) {
-  return tgSendMessage(chatId, text, {
-    reply_markup: {
-      keyboard: [[{ text: "🛠 Ouvrir l'admin", web_app: { url: adminUrl } }]],
-      resize_keyboard: true,
-      one_time_keyboard: false
-    }
-  });
-}
-
-async function tgSendBothKeyboards(chatId, text, webUrl, adminUrl) {
-  return tgSendMessage(chatId, text, {
-    reply_markup: {
-      keyboard: [[
-        { text: '🛍 Ouvrir la boutique', web_app: { url: webUrl } },
-        { text: "🛠 Ouvrir l'admin", web_app: { url: adminUrl } }
-      ]],
-      resize_keyboard: true,
-      one_time_keyboard: false
-    }
-  });
-}
-
-async function tgSendPDF(chatId, filePath, caption = '') {
-  if (!TELEGRAM_TOKEN || !chatId) {
-    console.warn('Telegram non configuré pour envoi PDF');
-    return;
-  }
-  try {
-    const form = new FormData();
-    form.append('chat_id', chatId);
-    if (caption) form.append('caption', caption);
-    form.append('document', fs.createReadStream(filePath));
-    
-    const response = await fetch(`${TG_API}/sendDocument`, {
-      method: 'POST',
-      body: form
-    });
-    
-    if (!response.ok) {
-      console.error('Erreur envoi PDF:', await response.text());
-    }
-  } catch (e) {
-    console.error('tgSendPDF error:', e.message);
-  }
-}
-
-// =============================
-//   ROUTES DE TEST
-// =============================
-
-app.get('/', (_req, res) => res.status(200).send('OK'));
-app.get('/webhook', (_req, res) => res.status(200).send('Webhook OK 🚀'));
-
-// =============================
-//   WEBHOOK TELEGRAM
-// =============================
-
-app.post('/webhook', express.json(), async (req, res) => {
-  try {
-    const msg = req.body?.message;
-    if (!msg) return res.sendStatus(200);
-
-    const chatId = msg.chat.id;
-    const fromId = msg.from.id;
-    const text = (msg.text || '').trim();
-
-    const isAdminCtx =
-      ADMIN_OPEN ||
-      (ADMIN_CHAT_ID && String(chatId) === String(ADMIN_CHAT_ID)) ||
-      (ADMIN_USER_ID && String(fromId) === String(ADMIN_USER_ID));
-
-    // Commande /whoami
-    if (text === '/whoami') {
-      await tgSendMessage(
-        chatId,
-        `chatId: <code>${chatId}</code>\nuserId: <code>${fromId}</code>`
-      );
-      return res.sendStatus(200);
-    }
-
-    // Commande /debug
-    if (text === '/debug') {
-      await tgSendMessage(
-        chatId,
-        `chatId: <code>${chatId}</code>\n` +
-        `userId: <code>${fromId}</code>\n` +
-        `ADMIN_USER_ID: <code>${ADMIN_USER_ID}</code>\n` +
-        `ADMIN_CHAT_ID: <code>${ADMIN_CHAT_ID}</code>\n` +
-        `ADMIN_OPEN: <code>${ADMIN_OPEN ? '1' : '0'}</code>`
-      );
-      return res.sendStatus(200);
-    }
-
-    // Commande /start
-    if (text === '/start') {
-      if (isAdminCtx) {
-        await tgSendBothKeyboards(
-          chatId,
-          'Bienvenue 👋\nChoisis une action :',
-          WEBAPP_URL,
-          ADMIN_URL
-        );
-      } else {
-        await tgSendWebAppKeyboard(
-          chatId,
-          'Bienvenue 👋\nAppuie sur le bouton pour ouvrir la boutique.',
-          WEBAPP_URL
-        );
-      }
-      return res.sendStatus(200);
-    }
-
-    // Commande /admin
-    if (text === '/admin') {
-      if (!isAdminCtx) {
-        await tgSendMessage(chatId, '⛔️ Accès refusé.');
-      } else {
-        await tgSendAdminKeyboard(chatId, '🔐 Accéder au panneau admin :', ADMIN_URL);
-      }
-      return res.sendStatus(200);
-    }
-
-    // Message par défaut
-    await tgSendMessage(
-      chatId,
-      'Commandes disponibles :\n' +
-      '• /start  → ouvrir la boutique 🛍\n' +
-      '• /admin  → panneau admin 🔐\n' +
-      '• /whoami → afficher vos IDs\n' +
-      '• /debug  → voir les variables lues par le serveur'
-    );
-    return res.sendStatus(200);
-  } catch (e) {
-    console.error('webhook error:', e);
-    return res.sendStatus(200);
-  }
-});
-
-// =============================
-//   BASE DE DONNÉES
-// =============================
-
-let db;
-(async () => {
-  try {
-    db = await open({
-      filename: path.join(__dirname, 'data.db'),
-      driver: sqlite3.Database
-    });
-
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer TEXT,
-        type TEXT,
-        address TEXT,
-        items TEXT,
-        total REAL,
-        discount REAL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS stock (
-        product_id INTEGER,
-        variant TEXT,
-        qty INTEGER DEFAULT 999,
-        PRIMARY KEY (product_id, variant)
-      );
-    `);
-
-    console.log('Base de données initialisée ✓');
-  } catch (e) {
-    console.error('Erreur initialisation DB:', e);
-    process.exit(1);
-  }
-})();
-
-// =============================
-//   GÉNÉRATION PDF
-// =============================
-
-function makeReceiptPDF(order) {
-  const dir = path.join(__dirname, 'receipts');
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  
-  const file = path.join(dir, `receipt_${order.id}.pdf`);
-  const doc = new PDFDocument({ margin: 40 });
-  doc.pipe(fs.createWriteStream(file));
-
-  // En-tête
-  doc.fontSize(18).text('DROGUA CENTER', { align: 'left' });
-  doc.moveDown();
-  doc.fontSize(14).text('Reçu de commande', { underline: true });
-  doc.moveDown(0.5);
-
-  // Informations commande
-  doc.fontSize(11).text(`Commande #${order.id}`);
-  doc.text(`Date: ${new Date(order.created_at).toLocaleString('fr-FR')}`);
-  doc.text(`Client: ${order.customer || 'Client'}`);
-  doc.text(`Type: ${order.type}`);
-  doc.moveDown();
-
-  // Articles
-  doc.fontSize(12).text('Articles:');
-  const items = JSON.parse(order.items || '[]');
-  items.forEach((it, i) => {
-    doc.fontSize(10).text(
-      `${i + 1}. ${it.name} - ${it.variant} - ${it.qty} × ${Number(it.price).toFixed(2)} € = ${Number(it.lineTotal).toFixed(2)} €`
-    );
-  });
-
-  // Adresse
-  doc.moveDown();
-  doc.fontSize(11).text('Adresse de livraison:');
-  doc.text(order.address || '—');
-
-  // Total
-  doc.moveDown();
-  if (order.discount > 0) {
-    doc.fontSize(11).text(`Remise fidélité: -${Number(order.discount).toFixed(2)} €`);
-  }
-  doc.fontSize(13).text(`Total: ${Number(order.total).toFixed(2)} €`, { align: 'right' });
-
-  doc.end();
-  return file;
-}
-
-// =============================
-//   FONCTION ENVOI REÇU CLIENT
-// =============================
-
-async function sendReceiptToCustomer(order, customerChatId) {
-  if (!customerChatId) {
-    console.log('Pas de chat_id client, reçu non envoyé');
-    return false;
-  }
-  
-  try {
-    const items = JSON.parse(order.items || '[]');
-    const linesPretty = items.map((it, i) =>
-      ` ${i + 1}. ${it.name} - ${it.variant} - ${it.qty} × ${Number(it.price).toFixed(2)} € = ${Number(it.lineTotal).toFixed(2)} €`
-    ).join('\n');
-
-    const customerMessage = `✅ Commande confirmée !
-
-🛍 DROGUA CENTER - Reçu de commande
-
-⸻ Votre commande #${order.id} ⸻
-
-${linesPretty}
-
-📍 Livraison à:
-${order.address || '—'}
-
-💰 Montant total: ${order.total.toFixed(2)} €
-${order.discount > 0 ? `🎁 Remise fidélité: -${order.discount.toFixed(2)} €` : ''}
-
-⸻
-Merci pour votre commande ! 🌟
-Un livreur va vous contacter sous peu.`;
-
-    await tgSendMessage(customerChatId, customerMessage);
-    
-    // Envoyer aussi le PDF
+  const login = async () => {
     try {
-      const pdfPath = makeReceiptPDF(order);
-      await tgSendPDF(customerChatId, pdfPath, `Votre reçu #${order.id}`);
-      console.log(`Reçu envoyé au client ${customerChatId}`);
-      return true;
+      const res = await fetch(`${API_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setToken(data.token);
+        localStorage.setItem('admin_token', data.token);
+        showMessage('✅ Connexion réussie');
+      } else {
+        showMessage('❌ Mot de passe incorrect', true);
+      }
     } catch (e) {
-      console.error('Erreur envoi PDF client:', e);
-      return false;
+      showMessage('❌ Erreur de connexion', true);
     }
-  } catch (e) {
-    console.error('Erreur sendReceiptToCustomer:', e);
-    return false;
-  }
-}
+  };
 
-// =============================
-//   API GEOCODING
-// =============================
+  const logout = () => {
+    setToken('');
+    localStorage.removeItem('admin_token');
+  };
 
-app.get('/api/geocode', async (req, res) => {
-  try {
-    const q = req.query.q || '';
-    if (!q) return res.json({ features: [] });
-    
-    if (!MAPBOX_KEY) {
-      return res.status(500).json({ error: 'MAPBOX_KEY non configurée' });
-    }
+  const loadData = async () => {
+    try {
+      const [statsRes, ordersRes, alertsRes, reportsRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/stats?period=${period}`, {
+          headers: { 'x-admin-token': token }
+        }),
+        fetch(`${API_URL}/api/admin/orders`, {
+          headers: { 'x-admin-token': token }
+        }),
+        fetch(`${API_URL}/api/admin/alerts`, {
+          headers: { 'x-admin-token': token }
+        }),
+        fetch(`${API_URL}/api/admin/auto-reports`, {
+          headers: { 'x-admin-token': token }
+        })
+      ]);
 
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${MAPBOX_KEY}&autocomplete=true&limit=6`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Mapbox API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    res.json(data);
-  } catch (e) {
-    console.error('Geocode error:', e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// =============================
-//   API CRÉATION COMMANDE (AVEC ENVOI REÇU CLIENT)
-// =============================
-
-app.post('/api/create-order', async (req, res) => {
-  try {
-    const {
-      customer = 'Client',
-      type = 'Livraison',
-      address = '',
-      items = [],
-      total = 0,
-      telegram_user = null,
-      telegram_init_data = null
-    } = req.body;
-
-    // Validation
-    if (!items || items.length === 0) {
-      return res.status(400).json({ ok: false, error: 'Panier vide' });
-    }
-
-    // Calcul fidélité: -10€ tous les 10 commandes
-    const row = await db.get(
-      'SELECT COUNT(*) as cnt FROM orders WHERE customer = ?',
-      customer
-    );
-    const previousOrders = row ? row.cnt : 0;
-    let discount = 0;
-    
-    if ((previousOrders + 1) % 10 === 0) {
-      discount = 10;
-    }
-
-    const finalTotal = Math.max(0, Number(total) - discount);
-
-    // Insertion commande
-    const result = await db.run(
-      'INSERT INTO orders (customer, type, address, items, total, discount) VALUES (?, ?, ?, ?, ?, ?)',
-      customer,
-      type,
-      address,
-      JSON.stringify(items),
-      finalTotal,
-      discount
-    );
-
-    const orderId = result.lastID;
-    const order = await db.get('SELECT * FROM orders WHERE id = ?', orderId);
-
-    // Préparation messages
-    const linesPretty = items.map((it, i) =>
-      ` ${i + 1}. ${it.name} - ${it.variant} - ${it.qty} × ${Number(it.price).toFixed(2)} € = ${Number(it.lineTotal).toFixed(2)} €`
-    ).join('\n');
-
-    // Message admin complet
-    const adminMessage = `🛍 Nouvelle Commande DROGUA CENTER
-
-⸻ Détails de la commande ⸻
-Commande #${orderId}
-Client: ${customer}
-${telegram_user ? `📱 Telegram: ${telegram_user}` : ''}
-Type: ${order.type}
-
-${linesPretty}
-
-📍 Adresse de livraison:
-${order.address || '—'}
-
-💰 Montant total: ${order.total.toFixed(2)} €
-${discount > 0 ? `🎁 Remise fidélité: -${order.discount.toFixed(2)} €` : ''}
-
-⸻
-Merci pour votre confiance 🌟`;
-
-    // Envoi à l'admin
-    if (ADMIN_CHAT_ID) {
-      await tgSendMessage(ADMIN_CHAT_ID, adminMessage);
-      
-      // Génération et envoi du PDF
-      try {
-        const pdfPath = makeReceiptPDF(order);
-        await tgSendPDF(ADMIN_CHAT_ID, pdfPath, `Reçu #${orderId}`);
-      } catch (pdfError) {
-        console.error('Erreur génération PDF admin:', pdfError);
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData.stats);
       }
+      if (ordersRes.ok) {
+        const ordersData = await ordersRes.json();
+        setOrders(ordersData.orders || []);
+      }
+      if (alertsRes.ok) {
+        const alertsData = await alertsRes.json();
+        setAlerts(alertsData.alerts || []);
+      }
+      if (reportsRes.ok) {
+        const reportsData = await reportsRes.json();
+        setAutoReports(reportsData.reports || []);
+      }
+    } catch (e) {
+      console.error('Erreur chargement:', e);
     }
+  };
 
-    // Message livreur (sans nom client)
-    if (DRIVER_CHAT_ID) {
-      const driverMessage = `📦 Nouvelle Livraison
-
-${linesPretty}
-
-📍 Adresse:
-${order.address || '—'}
-
-💵 Total à encaisser: ${order.total.toFixed(2)} €`;
-
-      await tgSendMessage(DRIVER_CHAT_ID, driverMessage);
+  const downloadPDF = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/recap-pdf?period=${period}`, {
+        headers: { 'x-admin-token': token }
+      });
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `recap_${new Date().toISOString().split('T')[0]}.pdf`;
+      a.click();
+      showMessage('✅ PDF téléchargé');
+    } catch (e) {
+      showMessage('❌ Erreur téléchargement', true);
     }
+    setLoading(false);
+  };
 
-    // =============================
-    //   ENVOI DU REÇU AU CLIENT
-    // =============================
-    
-    let customerChatId = null;
-    let receiptSent = false;
+  const downloadCSV = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/export-csv`, {
+        headers: { 'x-admin-token': token }
+      });
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `commandes_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      showMessage('✅ CSV téléchargé');
+    } catch (e) {
+      showMessage('❌ Erreur téléchargement', true);
+    }
+    setLoading(false);
+  };
 
-    // Cas 1: Récupérer user_id depuis Telegram Web App
-    if (telegram_init_data) {
-      try {
-        const params = new URLSearchParams(telegram_init_data);
-        const userJson = params.get('user');
-        if (userJson) {
-          const user = JSON.parse(userJson);
-          customerChatId = user.id;
-          console.log('Client Telegram détecté:', user.id, user.username);
+  const sendToTelegram = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/send-recap-to-admin`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-token': token 
         }
-      } catch (e) {
-        console.error('Erreur parsing Telegram init data:', e);
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showMessage('✅ Rapport envoyé sur Telegram');
+      } else {
+        showMessage('❌ ' + (data.error || 'Erreur'), true);
       }
+    } catch (e) {
+      showMessage('❌ Erreur envoi', true);
     }
+    setLoading(false);
+  };
 
-    // Cas 2: User_id ou username fourni directement
-    if (!customerChatId && telegram_user) {
-      // Si c'est un nombre, c'est un user_id
-      if (!isNaN(telegram_user)) {
-        customerChatId = telegram_user;
-      } else if (telegram_user.startsWith('@')) {
-        // Si c'est un @username, on le log mais on ne peut pas envoyer directement
-        console.log('Username fourni:', telegram_user);
-        console.log('⚠️ Pour envoyer au client, il doit avoir fait /start sur le bot');
+  const addAlert = async (type, threshold) => {
+    try {
+      const chatId = prompt('Chat ID Telegram:');
+      if (!chatId) return;
+      
+      const res = await fetch(`${API_URL}/api/admin/alerts`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-token': token 
+        },
+        body: JSON.stringify({ type, threshold: Number(threshold), chat_id: chatId })
+      });
+      
+      if (res.ok) {
+        showMessage('✅ Alerte créée');
+        loadData();
       }
+    } catch (e) {
+      showMessage('❌ Erreur création alerte', true);
     }
+  };
 
-    // Envoyer le reçu au client si on a son chat_id
-    if (customerChatId) {
-      receiptSent = await sendReceiptToCustomer(order, customerChatId);
+  const deleteAlert = async (id) => {
+    if (!confirm('Supprimer cette alerte ?')) return;
+    try {
+      await fetch(`${API_URL}/api/admin/alerts/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': token }
+      });
+      showMessage('✅ Alerte supprimée');
+      loadData();
+    } catch (e) {
+      showMessage('❌ Erreur', true);
     }
+  };
 
-    res.json({
-      ok: true,
-      id: orderId,
-      discount: order.discount,
-      total: order.total,
-      receipt_sent: receiptSent
-    });
-  } catch (e) {
-    console.error('create-order error:', e);
-    res.status(500).json({ ok: false, error: e.message });
-  }
-});
-
-// =============================
-//   ADMIN: AUTHENTIFICATION
-// =============================
-
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 heures
-const sessions = new Map();
-
-// Nettoyage des sessions expirées
-setInterval(() => {
-  const now = Date.now();
-  for (const [token, timestamp] of sessions.entries()) {
-    if (now - timestamp > SESSION_TIMEOUT) {
-      sessions.delete(token);
+  const addAutoReport = async (frequency) => {
+    try {
+      const chatId = prompt('Chat ID Telegram:');
+      if (!chatId) return;
+      
+      const res = await fetch(`${API_URL}/api/admin/auto-reports`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-token': token 
+        },
+        body: JSON.stringify({ type: 'full', frequency, chat_id: chatId })
+      });
+      
+      if (res.ok) {
+        showMessage('✅ Rapport automatique créé');
+        loadData();
+      }
+    } catch (e) {
+      showMessage('❌ Erreur', true);
     }
+  };
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
+              <Settings className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Admin Panel</h1>
+            <p className="text-gray-600 mt-2">Connexion sécurisée</p>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mot de passe
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && login()}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Entrez le mot de passe"
+                required
+              />
+            </div>
+            
+            <button
+              onClick={login}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+            >
+              Se connecter
+            </button>
+          </div>
+          
+          {message && (
+            <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              {message}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
-}, 60 * 60 * 1000); // Toutes les heures
 
-app.post('/api/admin/login', (req, res) => {
-  const { password = '' } = req.body;
-  
-  if (password !== ADMIN_PASS) {
-    return res.status(401).json({ ok: false, error: 'invalid' });
-  }
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">DROGUA CENTER</h1>
+            <p className="text-sm text-gray-600">Tableau de bord administrateur</p>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="all">Toutes périodes</option>
+              <option value="today">Aujourd'hui</option>
+              <option value="week">7 derniers jours</option>
+              <option value="month">30 derniers jours</option>
+            </select>
+            
+            <button
+              onClick={logout}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </header>
 
-  const token = crypto.randomBytes(24).toString('hex');
-  sessions.set(token, Date.now());
-  
-  res.json({ ok: true, token });
-});
+      {/* Message Toast */}
+      {message && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          {message}
+        </div>
+      )}
 
-// Middleware de protection admin
-function guardAdmin(req, res, next) {
-  const token = req.headers['x-admin-token'] || '';
-  
-  if (!token || !sessions.has(token)) {
-    return res.status(401).json({ ok: false, error: 'unauthorized' });
-  }
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4">
+          <nav className="flex gap-2">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              { id: 'orders', label: 'Commandes', icon: ShoppingCart },
+              { id: 'reports', label: 'Rapports', icon: FileText },
+              { id: 'alerts', label: 'Alertes', icon: Bell },
+              { id: 'auto', label: 'Automatisation', icon: Settings }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-3 border-b-2 transition ${
+                  activeTab === tab.id
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
 
-  // Vérifier expiration
-  const timestamp = sessions.get(token);
-  if (Date.now() - timestamp > SESSION_TIMEOUT) {
-    sessions.delete(token);
-    return res.status(401).json({ ok: false, error: 'session expired' });
-  }
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* DASHBOARD TAB */}
+        {activeTab === 'dashboard' && stats && (
+          <div className="space-y-6">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <ShoppingCart className="w-8 h-8 opacity-80" />
+                  <span className="text-3xl font-bold">{stats.total_orders}</span>
+                </div>
+                <p className="text-green-100">Commandes</p>
+              </div>
 
-  // Renouveler la session
-  sessions.set(token, Date.now());
-  next();
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <DollarSign className="w-8 h-8 opacity-80" />
+                  <span className="text-3xl font-bold">{stats.total_revenue.toFixed(0)}€</span>
+                </div>
+                <p className="text-blue-100">Chiffre d'affaires</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <TrendingUp className="w-8 h-8 opacity-80" />
+                  <span className="text-3xl font-bold">{stats.avg_basket.toFixed(0)}€</span>
+                </div>
+                <p className="text-orange-100">Panier moyen</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-pink-500 to-pink-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <Package className="w-8 h-8 opacity-80" />
+                  <span className="text-3xl font-bold">-{stats.total_discounts.toFixed(0)}€</span>
+                </div>
+                <p className="text-pink-100">Remises fidélité</p>
+              </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Répartition par type */}
+              <div className="bg-white rounded-xl p-6 shadow">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Package className="w-5 h-5 text-indigo-600" />
+                  Répartition par type
+                </h3>
+                <div className="space-y-3">
+                  {Object.entries(stats.by_type).map(([type, count]) => {
+                    const percentage = (count / stats.total_orders) * 100;
+                    return (
+                      <div key={type}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="font-medium">{type}</span>
+                          <span className="text-gray-600">{count} ({percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-indigo-600 h-2 rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Top Produits */}
+              <div className="bg-white rounded-xl p-6 shadow">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  Top Produits
+                </h3>
+                <div className="space-y-3">
+                  {Object.entries(stats.top_products).slice(0, 5).map(([name, data], i) => (
+                    <div key={name} className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-bold text-sm">
+                        {i + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{name}</p>
+                        <p className="text-xs text-gray-600">{data.qty} vendus • {data.revenue.toFixed(2)}€</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Tendance quotidienne */}
+            {stats.daily_trend && stats.daily_trend.length > 0 && (
+              <div className="bg-white rounded-xl p-6 shadow">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Tendance des 7 derniers jours
+                </h3>
+                <div className="flex items-end gap-2 h-40">
+                  {stats.daily_trend.slice(-7).map((day, i) => {
+                    const maxRevenue = Math.max(...stats.daily_trend.map(d => d.revenue));
+                    const height = (day.revenue / maxRevenue) * 100;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                        <div className="text-xs text-gray-600">{day.revenue.toFixed(0)}€</div>
+                        <div
+                          className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t transition-all hover:from-blue-600 hover:to-blue-500"
+                          style={{ height: `${height}%` }}
+                        />
+                        <div className="text-xs text-gray-500">{new Date(day.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ORDERS TAB */}
+        {activeTab === 'orders' && (
+          <div className="bg-white rounded-xl shadow">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-semibold">Commandes récentes</h2>
+              <p className="text-gray-600 text-sm">Total: {orders.length} commande(s)</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Articles</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {orders.slice(0, 50).map(order => (
+                    <tr key={order.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium">#{order.id}</td>
+                      <td className="px-6 py-4 text-sm">{order.customer}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                          {order.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {order.items.reduce((sum, it) => sum + it.qty, 0)} articles
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
+                        {order.total.toFixed(2)}€
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* REPORTS TAB */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h2 className="text-xl font-semibold mb-4">Générer un rapport</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={downloadPDF}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  <Download className="w-5 h-5" />
+                  Télécharger PDF
+                </button>
+                
+                <button
+                  onClick={downloadCSV}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  <FileText className="w-5 h-5" />
+                  Exporter CSV
+                </button>
+                
+                <button
+                  onClick={sendToTelegram}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  <Send className="w-5 h-5" />
+                  Envoyer sur Telegram
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h3 className="text-lg font-semibold mb-4">Contenu du rapport PDF</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Statistiques globales</p>
+                    <p className="text-gray-600">Commandes, CA, panier moyen, remises</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Top produits & clients</p>
+                    <p className="text-gray-600">Classements par performance</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Analyse temporelle</p>
+                    <p className="text-gray-600">Tendances et prévisions</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Analyse géographique</p>
+                    <p className="text-gray-600">Zones de livraison</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Graphiques visuels</p>
+                    <p className="text-gray-600">Camemberts et barres</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Détails des commandes</p>
+                    <p className="text-gray-600">Liste complète</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ALERTS TAB */}
+        {activeTab === 'alerts' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h2 className="text-xl font-semibold mb-4">Créer une alerte</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => addAlert('low_activity', prompt('Seuil (nb commandes min/jour):'))}
+                  className="flex items-center justify-center gap-2 bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700"
+                >
+                  <AlertCircle className="w-5 h-5" />
+                  Activité faible
+                </button>
+                
+                <button
+                  onClick={() => addAlert('high_revenue', prompt('Objectif CA journalier (€):'))}
+                  className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700"
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  Objectif CA atteint
+                </button>
+                
+                <button
+                  onClick={() => showMessage('⚠️ À implémenter avec gestion stock')}
+                  className="flex items-center justify-center gap-2 bg-red-600 text-white px-6 py-4 rounded-lg hover:bg-red-700"
+                >
+                  <Package className="w-5 h-5" />
+                  Stock faible
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h3 className="text-lg font-semibold mb-4">Alertes actives ({alerts.length})</h3>
+              <div className="space-y-3">
+                {alerts.map(alert => (
+                  <div key={alert.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Bell className="w-5 h-5 text-indigo-600" />
+                      <div>
+                        <p className="font-medium">
+                          {alert.type === 'low_activity' ? 'Activité faible' : 
+                           alert.type === 'high_revenue' ? 'Objectif CA' : alert.type}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Seuil: {alert.threshold} • Chat: {alert.chat_id}
+                        </p>
+                        {alert.last_triggered && (
+                          <p className="text-xs text-gray-500">
+                            Dernier déclenchement: {new Date(alert.last_triggered).toLocaleString('fr-FR')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteAlert(alert.id)}
+                      className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                ))}
+                {alerts.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">Aucune alerte configurée</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AUTO TAB */}
+        {activeTab === 'auto' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h2 className="text-xl font-semibold mb-4">Rapports automatiques</h2>
+              <p className="text-gray-600 mb-4">Les rapports seront envoyés automatiquement sur Telegram</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => addAutoReport('daily')}
+                  className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700"
+                >
+                  <Calendar className="w-5 h-5" />
+                  Rapport quotidien
+                </button>
+                
+                <button
+                  onClick={() => addAutoReport('weekly')}
+                  className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-4 rounded-lg hover:bg-indigo-700"
+                >
+                  <Calendar className="w-5 h-5" />
+                  Rapport hebdomadaire
+                </button>
+                
+                <button
+                  onClick={() => addAutoReport('monthly')}
+                  className="flex items-center justify-center gap-2 bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700"
+                >
+                  <Calendar className="w-5 h-5" />
+                  Rapport mensuel
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h3 className="text-lg font-semibold mb-4">Rapports programmés ({autoReports.length})</h3>
+              <div className="space-y-3">
+                {autoReports.map(report => (
+                  <div key={report.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-indigo-600" />
+                      <div>
+                        <p className="font-medium capitalize">{report.frequency}</p>
+                        <p className="text-sm text-gray-600">Chat ID: {report.chat_id}</p>
+                        {report.last_sent && (
+                          <p className="text-xs text-gray-500">
+                            Dernier envoi: {new Date(report.last_sent).toLocaleString('fr-FR')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (confirm('Supprimer ce rapport ?')) {
+                          await fetch(`${API_URL}/api/admin/auto-reports/${report.id}`, {
+                            method: 'DELETE',
+                            headers: { 'x-admin-token': token }
+                          });
+                          loadData();
+                        }
+                      }}
+                      className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                ))}
+                {autoReports.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">Aucun rapport automatique configuré</p>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h4 className="font-semibold text-blue-800 mb-2">ℹ️ Comment ça fonctionne ?</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Les rapports sont vérifiés automatiquement toutes les heures</li>
+                <li>• Vous recevrez un PDF complet avec toutes les statistiques</li>
+                <li>• Les alertes sont vérifiées toutes les 30 minutes</li>
+                <li>• Utilisez /whoami dans Telegram pour obtenir votre Chat ID</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
-
-// =============================
-//   ADMIN: LISTE COMMANDES
-// =============================
-
-app.get('/api/admin/orders', guardAdmin, async (req, res) => {
-  try {
-    const orders = await db.all('SELECT * FROM orders ORDER BY created_at DESC');
-    
-    // Parse items JSON
-    orders.forEach(order => {
-      order.items = JSON.parse(order.items || '[]');
-    });
-
-    // Calcul chiffre d'affaires total
-    const totalCA = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-
-    res.json({
-      ok: true,
-      orders,
-      ca: totalCA
-    });
-  } catch (e) {
-    console.error('admin/orders error:', e);
-    res.status(500).json({ ok: false, error: e.message });
-  }
-});
-
-// =============================
-//   SPA FALLBACK
-// =============================
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
-
-// =============================
-//   DÉMARRAGE SERVEUR
-// =============================
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur le port ${PORT}`);
-  console.log(`📱 Webapp URL: ${WEBAPP_URL}`);
-  console.log(`🛠  Admin URL: ${ADMIN_URL}`);
-  if (!TELEGRAM_TOKEN) console.warn('⚠️  TELEGRAM_TOKEN non configuré');
-  if (!MAPBOX_KEY) console.warn('⚠️  MAPBOX_KEY non configuré');
-});
