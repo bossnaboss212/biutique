@@ -703,6 +703,19 @@ app.put('/api/admin/settings', guardAdmin, (req, res) => {
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // =============================
+//   ROUTE ADMIN EXPLICITE
+// =============================
+
+app.get('/admin.html', (req, res) => {
+  const adminPath = path.join(__dirname, '..', 'public', 'admin.html');
+  if (fs.existsSync(adminPath)) {
+    res.sendFile(adminPath);
+  } else {
+    res.status(404).send('admin.html non trouvé');
+  }
+});
+
+// =============================
 //   SPA FALLBACK (DOIT ÊTRE EN DERNIER)
 // =============================
 
