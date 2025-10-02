@@ -997,12 +997,12 @@ tbody tr:last-child td{border-bottom:none}
 <div class="toast" id="toast"></div>
 
 <script>
-const API = '/api';
+const API = 'https://biutique-production.up.railway.app/api';
 const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
 const ADMIN_PASS = 'gangstaforlife12'; // ⚠️ CHANGEZ CE MOT DE PASSE
 
 let TOKEN = 'local-admin-token';
-let USE_LOCAL_MODE = true; // Mode local sans backend (à mettre à false quand backend prêt)
+let USE_LOCAL_MODE = false;
 let PRODUCTS_DATA = [
   {id:1, name:'AMNESIA', variants:[{label:'3,33G',price:20},{label:'5G',price:30},{label:'10G',price:60},{label:'50G',price:250},{label:'100G',price:450}]},
   {id:2, name:'NEEDLES KETA', variants:[{label:'1G',price:20},{label:'2G',price:40},{label:'3G',price:50},{label:'5G',price:80},{label:'10G',price:150}]},
