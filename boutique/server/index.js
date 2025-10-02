@@ -1036,7 +1036,18 @@ app.use((err, req, res, next) => {
 //   SPA FALLBACK
 // =============================
 
-app.get('*', (req, res) => {
+// Pour toutes les autres routes (pas API, pas fichiers statiques déjà servis)
+app.use((req, res) => {
+  // Si c'est une route API, retourner 404 JSON
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      ok: false,
+      error: 'route_not_found',
+      path: req.path
+    });
+  }
+  
+  // Pour tout le reste, servir index.html (SPA)
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
