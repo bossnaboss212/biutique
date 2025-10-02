@@ -1,8 +1,34 @@
+# Configuration Nixpacks pour Railway/Render
+# Documentation: https://nixpacks.com/docs/configuration
+
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "python3", "gcc"]
+# Packages système requis pour la compilation
+nixPkgs = [
+  "nodejs-18_x",     # Node.js 18.x LTS
+  "python311",       # Python 3.11 (pour node-gyp)
+  "gcc",             # Compilateur C (pour sqlite3)
+  "gnumake",         # Make (pour compilation native)
+  "pkg-config"       # Configuration des packages
+]
 
 [phases.install]
-cmds = ["npm install --legacy-peer-deps"]
+# Installation des dépendances npm
+cmds = [
+  "npm ci --prefer-offline --no-audit",  # Installation propre et rapide
+  "npm prune --production"               # Supprime devDependencies en prod
+]
+
+[phases.build]
+# Étape de build (optionnelle, pour futurs assets)
+cmds = [
+  "echo 'Build phase - ready for production'"
+]
 
 [start]
+# Commande de démarrage
 cmd = "node server/index.js"
+
+[variables]
+# Variables d'environnement par défaut (peuvent être overridées)
+NODE_ENV = "production"
+PORT = "3000"
