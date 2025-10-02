@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // =============================
-//   MIDDLEWARES
+//   MIDDLEWARES (ORDRE IMPORTANT!)
 // =============================
 
 app.use(cors());
@@ -51,7 +51,6 @@ async function initDatabase() {
       driver: sqlite3.Database
     });
 
-    // Table orders
     await db.exec(`
       CREATE TABLE IF NOT EXISTS orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +65,6 @@ async function initDatabase() {
       );
     `);
 
-    // Table stock
     await db.exec(`
       CREATE TABLE IF NOT EXISTS stock (
         product_id INTEGER,
@@ -267,7 +265,7 @@ Un livreur va vous contacter sous peu.`;
 }
 
 // =============================
-//   ROUTES DE TEST
+//   ROUTES API (AVANT LES FICHIERS STATIQUES!)
 // =============================
 
 app.get('/', (req, res) => {
@@ -697,13 +695,13 @@ app.put('/api/admin/settings', guardAdmin, (req, res) => {
 });
 
 // =============================
-//   FICHIERS STATIQUES
+//   FICHIERS STATIQUES (APRÈS LES ROUTES API!)
 // =============================
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // =============================
-//   ROUTE ADMIN EXPLICITE
+//   ROUTE ADMIN.HTML EXPLICITE
 // =============================
 
 app.get('/admin.html', (req, res) => {
@@ -716,7 +714,7 @@ app.get('/admin.html', (req, res) => {
 });
 
 // =============================
-//   SPA FALLBACK (DOIT ÊTRE EN DERNIER)
+//   SPA FALLBACK (EN DERNIER!)
 // =============================
 
 app.get('*', (req, res) => {
